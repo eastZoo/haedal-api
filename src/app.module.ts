@@ -8,6 +8,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { User } from './entities/user.entity';
+import { AuthController } from './auth/auth.contoller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { User } from './entities/user.entity';
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

@@ -4,7 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
+
+import { SiginUpDto } from './dto/sign-up.dto';
 import { EntityManager, Repository } from 'typeorm';
+import { Couple } from 'src/entities/couple.entity';
 
 @Injectable()
 export class AuthService {
@@ -12,16 +15,18 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Couple)
+    private readonly coupleRepository: Repository<Couple>,
   ) {}
 
   /**
    * 로그인
-   * @param {string} userId 아이디
+   * @param {string} userEmail 아이디
    * @param {string} password 비밀번호
    * @returns {{ accessToken: string; refreshToken: string }} 유저정보
    */
   async signIn(
-    userId: string,
+    userEmail: string,
     password: string,
   ): Promise<{
     success: boolean;
@@ -30,7 +35,7 @@ export class AuthService {
     refreshToken?: string;
     user?: User;
   }> {
-    const user = await this.validateUser({ userId, password });
+    const user = await this.validateUser({ userEmail, password });
 
     if (!user) {
       return {
@@ -41,7 +46,7 @@ export class AuthService {
     }
 
     const payload = {
-      userId: user.userId,
+      userEmail: user.id,
       userName: user.name,
       id: user.id,
     };
@@ -53,16 +58,68 @@ export class AuthService {
     return { success: true, accessToken, refreshToken, user };
   }
 
+  /** 회원가입 및 로그인  */
+  async signUp(siginUpDto: SiginUpDto, queryManager: EntityManager) {
+    const user = await this.insertUser(siginUpDto, queryManager);
+
+    console.log('user : ', user);
+    // 승인 코드 생성
+    const code = Math.floor(Math.random() * 89999999) + 10000000;
+    await this.coupleRepository.save({
+      myId: user.id,
+      code: code,
+    });
+
+    const payload = {
+      userEmail: siginUpDto.userEmail,
+    };
+
+    const accessToken = this.createAccessToken(payload);
+    const refreshToken = this.createRefreshToken(payload);
+
+    return { success: true, accessToken, refreshToken };
+  }
+
+  /** userId 존재 유무 판별 */
+  async findById(userEmail: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { userEmail },
+      });
+      if (user === null) {
+        return false;
+      } else {
+        return true;
+      }
+    } catch (e: any) {
+      throw new HttpException(e.response, 500);
+    }
+  }
+
+  async getConnectState(userEmail: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { userEmail },
+      });
+
+      console.log(user);
+      console.log(user.connectState);
+      return user.connectState;
+    } catch (e: any) {
+      throw new HttpException(e.response, 500);
+    }
+  }
+
   public async validateUser({
-    userId,
+    userEmail,
     password,
   }: {
-    userId: string;
+    userEmail: string;
     password: string;
   }) {
     try {
       const user = await this.userRepository.findOne({
-        where: { userId },
+        where: { userEmail },
       });
 
       if (!user) {
@@ -96,23 +153,15 @@ export class AuthService {
   //   return await queryManager.save(Store, newStore);
   // };
 
-  // insertUser = async (
-  //   queryManager: EntityManager,
-  //   user: SiginUpDto,
-  //   storeId: string,
-  // ) => {
-  //   const newUser = Object.assign(new User(), {
-  //     name: user.name,
-  //     userId: user.userId,
-  //     password: user.password,
-  //     phoneNumber: user.phoneNumber,
-  //     userType: user.userType,
-  //     storeId: storeId,
-  //     approvalStatus: user.userType === 'ceo' ? 'approved' : undefined,
-  //   });
+  insertUser = async (user: SiginUpDto, queryManager: EntityManager) => {
+    const newUser = Object.assign(new User(), {
+      userEmail: user.userEmail,
+      password: user.password,
+      connectState: 1,
+    });
 
-  //   return await queryManager.save(User, newUser);
-  // };
+    return await queryManager.save(User, newUser);
+  };
 
   // insertMenu = async (
   //   queryManager: EntityManager,
