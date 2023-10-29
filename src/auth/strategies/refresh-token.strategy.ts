@@ -18,8 +18,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   async validate(payload: any) {
     return {
       id: payload.id,
-      userId: payload.userId,
-      userName: payload.userName,
+      userEmail: payload.userEmail,
     };
   }
 }

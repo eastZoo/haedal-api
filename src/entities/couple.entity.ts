@@ -25,11 +25,10 @@ export class Couple {
   @Column({ comment: '승인 코드' })
   code: number;
 
-  @Column('timestampz')
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @Column('timestamptz')
-  @UpdateDateColumn()
+  @Column({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }

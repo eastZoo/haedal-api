@@ -65,7 +65,36 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Get('/check-state')
   getConnectState(@Request() req: any) {
+    console.log(req.user);
+
     const { userEmail } = req.user;
+    console.log('userEmail  :', userEmail);
     return this.authService.getConnectState(userEmail);
+  }
+
+  @ApiOperation({ summary: '초대코드 얻기' })
+  @ApiResponse({
+    status: 200,
+    type: Number,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get('/invite-code')
+  getAccessCodeInfo(@Request() req: any) {
+    const { id } = req.user;
+
+    console.log('@@@@@@@@@@@@@@@@@@@@@', id);
+    return this.authService.getAccessCodeInfo(id);
+  }
+
+  @ApiOperation({ summary: '초대코드 재설정(24시간 주기)' })
+  @ApiResponse({
+    status: 200,
+    type: Number,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get('/invite-code/refresh')
+  refreshInviteCode(@Request() req: any) {
+    const { id } = req.user;
+    return this.authService.refreshInviteCode(id);
   }
 }

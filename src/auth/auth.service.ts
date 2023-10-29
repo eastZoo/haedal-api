@@ -61,8 +61,6 @@ export class AuthService {
   /** 회원가입 및 로그인  */
   async signUp(siginUpDto: SiginUpDto, queryManager: EntityManager) {
     const user = await this.insertUser(siginUpDto, queryManager);
-
-    console.log('user : ', user);
     // 승인 코드 생성
     const code = Math.floor(Math.random() * 89999999) + 10000000;
     await this.coupleRepository.save({
@@ -71,13 +69,27 @@ export class AuthService {
     });
 
     const payload = {
-      userEmail: siginUpDto.userEmail,
+      userEmail: user.userEmail,
+      id: user.id,
     };
+
+    console.log(payload);
 
     const accessToken = this.createAccessToken(payload);
     const refreshToken = this.createRefreshToken(payload);
 
-    return { success: true, accessToken, refreshToken };
+    console.log({
+      success: true,
+      accessToken,
+      refreshToken,
+      connectState: user.connectState,
+    });
+    return {
+      success: true,
+      accessToken,
+      refreshToken,
+      connectState: user.connectState,
+    };
   }
 
   /** userId 존재 유무 판별 */
@@ -96,17 +108,61 @@ export class AuthService {
     }
   }
 
+  // 회원가입 연결 진행상태값 얻기(1: 승인코드 미입력 , 2:개인정보 미입력, 3:모두입력)
   async getConnectState(userEmail: string) {
     try {
       const user = await this.userRepository.findOne({
         where: { userEmail },
       });
-
-      console.log(user);
-      console.log(user.connectState);
-      return user.connectState;
+      console.log('getConnectState');
+      console.log('user,: :', user);
+      return user.connectState || 0;
     } catch (e: any) {
       throw new HttpException(e.response, 500);
+    }
+  }
+
+  // 회원가입시 초대코드 정보(코드, 시간 ) 얻기
+  async getAccessCodeInfo(id: string) {
+    try {
+      const code = await this.coupleRepository.findOne({
+        where: { myId: id },
+      });
+      console.log('code   :', code);
+      return code;
+    } catch (e: any) {
+      throw new HttpException(e.response, 500);
+    }
+  }
+
+  // 초대코드 재설정(24시간 주기)
+  async refreshInviteCode(id: string) {
+    try {
+      const code = await this.coupleRepository.findOne({
+        where: { myId: id },
+      });
+      await this.generateUniqueInviteCode(code.id);
+
+      return code;
+    } catch (e: any) {
+      throw new HttpException(e.response, 500);
+    }
+  }
+
+  // 초대코드 디비와 겹치지않게 생성
+  async generateUniqueInviteCode(id: string) {
+    while (true) {
+      const randomCode = Math.floor(Math.random() * 89999999) + 10000000;
+      const code = await this.coupleRepository.findOne({
+        where: { code: randomCode },
+      });
+
+      if (code === null) {
+        const existingRecord = await this.coupleRepository.update(
+          { id: id },
+          { code: randomCode },
+        );
+      }
     }
   }
 
