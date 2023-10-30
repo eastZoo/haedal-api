@@ -68,6 +68,7 @@ export class AuthService {
       code: code,
     });
 
+    console.log('!!', user);
     const payload = {
       userEmail: user.userEmail,
       id: user.id,
@@ -92,6 +93,24 @@ export class AuthService {
     };
   }
 
+  async siginUpCancel(userEmail: string) {
+    try {
+      const userId = await this.userRepository.findOne({
+        where: { userEmail },
+      });
+      await this.userRepository.delete({
+        userEmail: userEmail,
+      });
+      await this.coupleRepository.delete({
+        myId: userId.id,
+      });
+
+      return { success: true, msg: '회원가입 삭제 완료' };
+    } catch (e: any) {
+      return { success: false, msg: e.response };
+    }
+  }
+
   /** userId 존재 유무 판별 */
   async findById(userEmail: string) {
     try {
@@ -114,8 +133,8 @@ export class AuthService {
       const user = await this.userRepository.findOne({
         where: { userEmail },
       });
-      console.log('getConnectState');
-      console.log('user,: :', user);
+
+      console.log(user);
       return user.connectState || 0;
     } catch (e: any) {
       throw new HttpException(e.response, 500);

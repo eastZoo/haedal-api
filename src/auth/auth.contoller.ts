@@ -36,6 +36,21 @@ export class AuthController {
     return this.authService.signUp(siginUpDto, queryManager);
   }
 
+  @ApiOperation({ summary: '회원가입 취소' })
+  @ApiResponse({
+    status: 200,
+    description: '회원가입 취소',
+    type: Boolean,
+  })
+  @Post('sign-up/cancel')
+  @UseInterceptors(TransactionInterceptor)
+  siginUpCancel(
+    @Body() siginUpDto: SiginUpDto,
+    @TransactionManager() queryManager: EntityManager,
+  ) {
+    return this.authService.siginUpCancel(siginUpDto.userEmail);
+  }
+
   @ApiOperation({ summary: '로그인' })
   @ApiResponse({
     status: 200,
@@ -65,10 +80,7 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Get('/check-state')
   getConnectState(@Request() req: any) {
-    console.log(req.user);
-
     const { userEmail } = req.user;
-    console.log('userEmail  :', userEmail);
     return this.authService.getConnectState(userEmail);
   }
 
