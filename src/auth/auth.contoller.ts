@@ -58,8 +58,7 @@ export class AuthController {
   })
   @Post('sign-in')
   siginIn(@Body() siginInDto: SignInDto) {
-    const { userId, password } = siginInDto;
-    return this.authService.signIn(userId, password);
+    return this.authService.signIn(siginInDto);
   }
 
   @ApiOperation({ summary: '아이디 중복 체크(회원가입 시)' })

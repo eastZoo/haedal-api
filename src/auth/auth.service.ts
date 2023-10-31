@@ -8,6 +8,7 @@ import { User } from 'src/entities/user.entity';
 import { SiginUpDto } from './dto/sign-up.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { Couple } from 'src/entities/couple.entity';
+import { SignInDto } from './dto/sign-in.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,20 +22,18 @@ export class AuthService {
 
   /**
    * 로그인
-   * @param {string} userEmail 아이디
-   * @param {string} password 비밀번호
+   * @param {SignInDto} siginInDto 아이디, 비밀번호
    * @returns {{ accessToken: string; refreshToken: string }} 유저정보
    */
-  async signIn(
-    userEmail: string,
-    password: string,
-  ): Promise<{
+  async signIn(siginInDto: SignInDto): Promise<{
     success: boolean;
     message?: string;
     accessToken?: string;
     refreshToken?: string;
     user?: User;
+    connectState?: number;
   }> {
+    const { userEmail, password } = siginInDto;
     const user = await this.validateUser({ userEmail, password });
 
     if (!user) {
@@ -44,18 +43,19 @@ export class AuthService {
           '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
       };
     }
-
     const payload = {
-      userEmail: user.id,
-      userName: user.name,
+      userEmail: user.userEmail,
       id: user.id,
     };
-
     const accessToken = this.createAccessToken(payload);
     const refreshToken = this.createRefreshToken(payload);
-    delete user.password;
 
-    return { success: true, accessToken, refreshToken, user };
+    return {
+      success: true,
+      accessToken,
+      refreshToken,
+      connectState: user.connectState,
+    };
   }
 
   /** 회원가입 및 로그인  */
@@ -68,23 +68,13 @@ export class AuthService {
       code: code,
     });
 
-    console.log('!!', user);
     const payload = {
       userEmail: user.userEmail,
       id: user.id,
     };
-
-    console.log(payload);
-
     const accessToken = this.createAccessToken(payload);
     const refreshToken = this.createRefreshToken(payload);
 
-    console.log({
-      success: true,
-      accessToken,
-      refreshToken,
-      connectState: user.connectState,
-    });
     return {
       success: true,
       accessToken,
