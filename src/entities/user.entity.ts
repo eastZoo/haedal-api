@@ -39,6 +39,9 @@ export class User {
   @Column({ comment: '휴대폰 번호', nullable: true })
   phoneNumber: string;
 
+  @Column({ comment: '처음만난날', nullable: true })
+  firstDay: string;
+
   @Column({
     comment:
       '연결 진행 상태( 1: 승인코드 미입력 , 2:개인정보 미입력, 3: 모두입력 )',

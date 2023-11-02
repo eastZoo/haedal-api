@@ -9,6 +9,8 @@ import { SiginUpDto } from './dto/sign-up.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { Couple } from 'src/entities/couple.entity';
 import { SignInDto } from './dto/sign-in.dto';
+import { CodeDto } from './dto/code.dto';
+import { InfoDto } from './dto/info.dto';
 
 @Injectable()
 export class AuthService {
@@ -172,6 +174,55 @@ export class AuthService {
           { code: randomCode },
         );
       }
+    }
+  }
+
+  /**
+   * 초대코드 연결
+   * @param {CodeDto} codeDto 초대코드
+   * @param {string} id 로그인 유저의 id(uuid)
+   * @returns {{ accessToken: string; refreshToken: string }} 유저정보
+   */
+  async onConnect(
+    codeDto: CodeDto,
+    id: string,
+  ): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    const { code } = codeDto;
+    const couple = await this.coupleRepository.findOne({
+      where: { code: code },
+    });
+
+    if (code !== null) {
+      // 커플 매칭 테이블 연결
+      await this.coupleRepository.update({ id: couple.id }, { partnerId: id });
+      // 내 정보에 연결 상태 업데이트
+      await this.userRepository.update({ id: id }, { connectState: 2 });
+      // 상대방 정보 연결상태 업데이트
+      await this.userRepository.update(
+        { id: couple.myId },
+        { connectState: 2 },
+      );
+    }
+    return {
+      success: true,
+    };
+  }
+
+  /** 개인정보 입력 후 시작하기 */
+  async onStartConnect(infoDto: InfoDto, id: string) {
+    try {
+      console.log('infoDto : ', infoDto);
+      await this.userRepository.update(
+        { id: id },
+        { ...infoDto, connectState: 3 },
+      );
+
+      return { success: true, connectState: 3 };
+    } catch (e) {
+      return { success: false, msg: e.response };
     }
   }
 
