@@ -195,9 +195,19 @@ export class AuthService {
       where: { code: code },
     });
 
+    console.log('couple  : ', couple);
+    console.log('My id  : ', id);
+
     if (code !== null) {
       // 커플 매칭 테이블 연결
-      await this.coupleRepository.update({ id: couple.id }, { partnerId: id });
+      await this.coupleRepository.update(
+        { myId: couple.myId },
+        { partnerId: id },
+      );
+      await this.coupleRepository.update(
+        { myId: id },
+        { partnerId: couple.myId },
+      );
       // 내 정보에 연결 상태 업데이트
       await this.userRepository.update({ id: id }, { connectState: 2 });
       // 상대방 정보 연결상태 업데이트
@@ -220,7 +230,7 @@ export class AuthService {
         { ...infoDto, connectState: 3 },
       );
 
-      return { success: true, connectState: 3 };
+      return { success: true, connectState: '3' };
     } catch (e) {
       return { success: false, msg: e.response };
     }

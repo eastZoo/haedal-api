@@ -28,7 +28,7 @@ export class User {
   password: string;
 
   @Column({ comment: '생일', nullable: true })
-  birth: string;
+  birth: Date;
 
   @Column({ comment: '나이', nullable: true })
   age: number;
@@ -40,7 +40,7 @@ export class User {
   phoneNumber: string;
 
   @Column({ comment: '처음만난날', nullable: true })
-  firstDay: string;
+  firstDay: Date;
 
   @Column({
     comment:
