@@ -92,8 +92,6 @@ export class AuthController {
   @Get('/invite-code')
   getAccessCodeInfo(@Request() req: any) {
     const { id } = req.user;
-
-    console.log('@@@@@@@@@@@@@@@@@@@@@', id);
     return this.authService.getAccessCodeInfo(id);
   }
 
