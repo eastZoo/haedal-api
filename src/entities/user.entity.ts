@@ -20,6 +20,9 @@ export class User {
   @Column({ comment: '유저 이름', nullable: true })
   name: string;
 
+  @Column({ comment: '커플테이블 아이디', nullable: true })
+  coupleId: string;
+
   @Index()
   @Column({ unique: true, comment: '유저 이메일' })
   userEmail: string;

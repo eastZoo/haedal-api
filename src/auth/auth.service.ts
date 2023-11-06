@@ -29,7 +29,7 @@ export class AuthService {
    */
   async signIn(siginInDto: SignInDto): Promise<{
     success: boolean;
-    message?: string;
+    msg?: string;
     accessToken?: string;
     refreshToken?: string;
     user?: User;
@@ -41,8 +41,7 @@ export class AuthService {
     if (!user) {
       return {
         success: false,
-        message:
-          '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
+        msg: '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
       };
     }
     const payload = {
@@ -181,44 +180,52 @@ export class AuthService {
    * 초대코드 연결
    * @param {CodeDto} codeDto 초대코드
    * @param {string} id 로그인 유저의 id(uuid)
-   * @returns {{ accessToken: string; refreshToken: string }} 유저정보
+   * @returns {{ success?: boolean; msg?: string }} 유저정보
    */
   async onConnect(
     codeDto: CodeDto,
     id: string,
   ): Promise<{
     success: boolean;
-    message?: string;
+    msg?: string;
   }> {
-    const { code } = codeDto;
-    const couple = await this.coupleRepository.findOne({
-      where: { code: code },
-    });
+    try {
+      const { code } = codeDto;
+      const couple = await this.coupleRepository.findOne({
+        where: { code: code },
+      });
 
-    console.log('couple  : ', couple);
-    console.log('My id  : ', id);
+      console.log('couple  : ', couple);
+      console.log('My id  : ', id);
 
-    if (code !== null) {
-      // 커플 매칭 테이블 연결
-      await this.coupleRepository.update(
-        { myId: couple.myId },
-        { partnerId: id },
-      );
-      await this.coupleRepository.update(
-        { myId: id },
-        { partnerId: couple.myId },
-      );
-      // 내 정보에 연결 상태 업데이트
-      await this.userRepository.update({ id: id }, { connectState: 2 });
-      // 상대방 정보 연결상태 업데이트
-      await this.userRepository.update(
-        { id: couple.myId },
-        { connectState: 2 },
-      );
+      if (code !== null) {
+        // 커플 매칭 테이블 연결
+        await this.coupleRepository.update(
+          { myId: couple.myId },
+          { partnerId: id },
+        );
+        // DELETE 초대코드 입력한 사람(나)도 couple 테이블에 초대코드 만들었던 흔적이 있다면 삭제
+        await this.coupleRepository.delete({ myId: id });
+
+        // 내 정보에 연결 상태 업데이트
+        await this.userRepository.update(
+          { id: id },
+          { connectState: 2, coupleId: couple.id },
+        );
+        // 상대방 정보 연결상태 업데이트
+        await this.userRepository.update(
+          { id: couple.myId },
+          { connectState: 2, coupleId: couple.id },
+        );
+        return {
+          success: true,
+        };
+      }
+      // 코드가 존재 하지 않을 때
+      return { success: false, msg: '입력하신 코드가 존재하지 않습니다.' };
+    } catch (error) {
+      return { success: false, msg: error.message };
     }
-    return {
-      success: true,
-    };
   }
 
   /** 개인정보 입력 후 시작하기 */
@@ -264,21 +271,6 @@ export class AuthService {
     }
   }
 
-  // insertStore = async (queryManager: EntityManager, store: SiginUpDto) => {
-  //   const newStore = Object.assign(new Store(), {
-  //     businessAddress: store.businessAddress,
-  //     businessAddressDetail: store.businessAddressDetail,
-  //     businessNumber: store.businessNumber,
-  //     merchantAssociationMembership: store.merchantAssociationMembership,
-  //     merchantAssociationName: store.merchantAssociationName,
-  //     postalCode: store.postalCode,
-  //     storeName: store.storeName,
-  //     storeType: store.storeType,
-  //   });
-
-  //   return await queryManager.save(Store, newStore);
-  // };
-
   insertUser = async (user: SiginUpDto, queryManager: EntityManager) => {
     const newUser = Object.assign(new User(), {
       userEmail: user.userEmail,
@@ -289,39 +281,6 @@ export class AuthService {
     return await queryManager.save(User, newUser);
   };
 
-  // insertMenu = async (
-  //   queryManager: EntityManager,
-  //   menus: Menu[],
-  //   userType: string,
-  //   userId: string,
-  // ) => {
-  //   const employeePermission = [
-  //     '66a51f89-d6c9-4e4b-a596-4ea06e105b75',
-  //     'ceb70c83-997f-47bd-ba6d-3a777731456d',
-  //   ];
-
-  //   await queryManager.insert(
-  //     MenuPermission,
-  //     menus.map((menu) => {
-  //       let isApproved = true;
-
-  //       // 유저타입이 직원일때 employeePermission제외 하고는 Permission값 false로 설정
-  //       if (userType === 'employee' && !employeePermission.includes(menu.id)) {
-  //         isApproved = false;
-  //       }
-
-  //       return {
-  //         isApproved: isApproved,
-  //         user: {
-  //           id: userId,
-  //         },
-  //         menu: {
-  //           id: menu.id,
-  //         },
-  //       };
-  //     }),
-  //   );
-  // };
   createAccessToken = (payload: any) => {
     const ACCESS_TOKEN_EXPIRES = '180d'; //6개월
     const jwtSecretKey = this.configService.get('JWT_SECRET');
