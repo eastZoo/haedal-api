@@ -10,6 +10,8 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { User } from './entities/user.entity';
 import { AuthController } from './auth/auth.contoller';
 import { AuthModule } from './auth/auth.module';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [User, __dirname + '/entities/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV == 'production' ? false : true,
+      synchronize: true,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
     }),
