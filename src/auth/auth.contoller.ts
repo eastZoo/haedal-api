@@ -16,12 +16,14 @@ import { TransactionManager } from 'src/decorator/transaction-manager';
 import { EntityManager } from 'typeorm';
 import { TransactionInterceptor } from 'src/middleware/transaction.middleware';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { CodeDto } from './dto/code.dto';
+import { InfoDto } from './dto/info.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: '회원가입' })
+  @ApiOperation({ summary: '1. 회원가입' })
   @ApiResponse({
     status: 200,
     description: '회원가입',
@@ -105,5 +107,29 @@ export class AuthController {
   refreshInviteCode(@Request() req: any) {
     const { id } = req.user;
     return this.authService.refreshInviteCode(id);
+  }
+
+  @ApiOperation({ summary: '2. 초대코드 연결' })
+  @ApiResponse({
+    status: 200,
+    type: Boolean,
+  })
+  @Post('/code/connect')
+  @UseGuards(AccessTokenGuard)
+  onConnect(@Request() req: any, @Body() codeDto: CodeDto) {
+    const { id } = req.user;
+    return this.authService.onConnect(codeDto, id);
+  }
+
+  @ApiOperation({ summary: '3. 개인정보 입력 후 시작하기' })
+  @ApiResponse({
+    status: 200,
+    type: Boolean,
+  })
+  @Post('/info/connect')
+  @UseGuards(AccessTokenGuard)
+  onStartConnect(@Request() req: any, @Body() infoDto: InfoDto) {
+    const { id } = req.user;
+    return this.authService.onStartConnect(infoDto, id);
   }
 }

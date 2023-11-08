@@ -124,7 +124,6 @@ export class AuthService {
       const user = await this.userRepository.findOne({
         where: { userEmail },
       });
-
       console.log(user);
       return user.connectState || 0;
     } catch (e: any) {
@@ -188,6 +187,7 @@ export class AuthService {
   ): Promise<{
     success: boolean;
     msg?: string;
+    connectState?: number;
   }> {
     try {
       const { code } = codeDto;
@@ -198,7 +198,7 @@ export class AuthService {
       console.log('couple  : ', couple);
       console.log('My id  : ', id);
 
-      if (code !== null) {
+      if (couple !== null) {
         // 커플 매칭 테이블 연결
         await this.coupleRepository.update(
           { myId: couple.myId },
@@ -219,6 +219,7 @@ export class AuthService {
         );
         return {
           success: true,
+          connectState: 2,
         };
       }
       // 코드가 존재 하지 않을 때
