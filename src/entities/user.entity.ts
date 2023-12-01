@@ -10,6 +10,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { AlbumBoard } from './album-board.entity';
+import { AlbumBoardComment } from './album-board-comment.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -59,6 +61,12 @@ export class User {
   @Column('timestamptz')
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @OneToMany((type) => AlbumBoard, (post) => post.user)
+  post: AlbumBoard;
+
+  @OneToMany((type) => AlbumBoardComment, (comment) => comment.user)
+  comment: AlbumBoardComment;
 
   @BeforeInsert()
   async setPassword() {

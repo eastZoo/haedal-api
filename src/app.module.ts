@@ -10,6 +10,8 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { User } from './entities/user.entity';
 import { AuthController } from './auth/auth.contoller';
 import { AuthModule } from './auth/auth.module';
+import { AlbumBoardModule } from './app/album-board/album-board.module';
+import { CalendarModule } from './app/calendar/calendar.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -33,6 +35,8 @@ dotenv.config();
       logging: true,
     }),
     AuthModule,
+    AlbumBoardModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [

@@ -125,7 +125,7 @@ export class AuthService {
         where: { userEmail },
       });
       console.log(user);
-      return user.connectState || 0;
+      return user === null ? false : user.connectState;
     } catch (e: any) {
       throw new HttpException(e.response, 500);
     }
