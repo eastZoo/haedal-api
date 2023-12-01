@@ -62,11 +62,11 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToMany((type) => AlbumBoard, (post) => post.user)
-  post: AlbumBoard;
-
   @OneToMany((type) => AlbumBoardComment, (comment) => comment.user)
   comment: AlbumBoardComment;
+  
+  @OneToMany((type) => AlbumBoard, (albumBoard) => albumBoard.user)
+  albumBoard: AlbumBoard;
 
   @BeforeInsert()
   async setPassword() {

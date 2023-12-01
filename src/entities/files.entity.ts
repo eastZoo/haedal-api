@@ -39,6 +39,6 @@ export class Files {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne((type) => AlbumBoard, (board) => board.files)
-  post: AlbumBoard;
+  @ManyToOne((type) => AlbumBoard, (albumBoard) => albumBoard.files)
+  albumBoard: AlbumBoard;
 }

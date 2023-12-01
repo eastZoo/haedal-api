@@ -46,13 +46,13 @@ export class AlbumBoard {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne((type) => User, (user) => user.post)
+  @ManyToOne((type) => User, (user) => user.albumBoard)
   @JoinColumn()
   user!: User;
 
   @OneToMany((type) => AlbumBoardComment, (comment) => comment.albumBoard)
   comments: AlbumBoardComment[];
 
-  @OneToMany((type) => Files, (files) => files.post)
+  @OneToMany((type) => Files, (files) => files.albumBoard)
   files: Files[];
 }
