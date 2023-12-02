@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class AlbumBoardService {
   constructor(
     @InjectRepository(AlbumBoard)
-    private anavadaRepository: Repository<AlbumBoard>,
+    private albumBoardRepository: Repository<AlbumBoard>,
   ) {}
 
   async create(
@@ -18,7 +18,6 @@ export class AlbumBoardService {
   ) {
     try {
       const post = JSON.parse(req.body.postData);
-
       const { id } = await queryManager.save(AlbumBoard, {
         ...post,
         lat: parseFloat(post.lat),
@@ -28,7 +27,6 @@ export class AlbumBoardService {
       });
 
       const file = filesData.map((item) => ({ ...item, postId: id }));
-      console.log(file);
       await queryManager.save(Files, file);
 
       return { success: true };
@@ -36,5 +34,33 @@ export class AlbumBoardService {
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
     }
+  }
+
+  async getAlbunBoardList(req: any, page: string) {
+    console.log(req.user);
+    console.log(page);
+
+    console.log(req.user);
+    console.log(page);
+
+    const { coupleId } = req.user;
+
+    const queryBuilder = this.albumBoardRepository
+      .createQueryBuilder('album_board')
+      .leftJoinAndSelect('album_board.user', 'user')
+      .leftJoinAndSelect('album_board.files', 'files')
+      .where('album_board.couple_id = :coupleId', { coupleId })
+      .orderBy('album_board.createdAt', 'ASC');
+
+    return await queryBuilder.getMany();
+
+    // const { coupleId } = req.user;
+    // const result = await this.albumBoardRepository.find({
+    //   where: { coupleId },
+    //   relations: ['user', 'files'],
+    //   order: { createdAt: 'DESC' },
+    // });
+
+    // return result;
   }
 }

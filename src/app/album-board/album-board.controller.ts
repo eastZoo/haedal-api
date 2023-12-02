@@ -8,6 +8,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerDiskOptions } from 'src/common/multerOptions';
@@ -22,9 +23,10 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 export class AlbumBoardController {
   constructor(private readonly albumBoardService: AlbumBoardService) {}
 
-  /** FilesInterceptor의 첫번째 속성 이름이 formData의 이미지가 담겨있는 key값과 같아야한다.*/
+  /** 스토리 생성 */
   @UseGuards(AccessTokenGuard)
   @Post('/create')
+  /** FilesInterceptor의 첫번째 속성 이름이 formData의 이미지가 담겨있는 key값과 같아야한다.*/
   @UseInterceptors(FilesInterceptor('images', null, multerDiskOptions))
   @UseInterceptors(TransactionInterceptor)
   @Bind(UploadedFiles())
@@ -33,14 +35,18 @@ export class AlbumBoardController {
     @Req() req: Request,
     @TransactionManager() queryManager: EntityManager,
   ) {
-    console.log('filesData :', filesData);
-    console.log('req :', req.body);
-    console.log('req :', req.body.postData);
     const result = await this.albumBoardService.create(
       filesData,
       req,
       queryManager,
     );
     return;
+  }
+
+  /** 스토리 */
+  @UseGuards(AccessTokenGuard)
+  @Get('/')
+  async getAlbunBoardList(@Req() req: Request, @Query('_page') page: string) {
+    return await this.albumBoardService.getAlbunBoardList(req, page);
   }
 }

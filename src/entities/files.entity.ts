@@ -14,7 +14,7 @@ export class Files {
   id!: string;
 
   @Column('uuid')
-  postId?: string;
+  albumBoardId?: string;
 
   @Column({ comment: '파일 저장 위치' })
   path!: string;
