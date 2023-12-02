@@ -46,7 +46,10 @@ export class AlbumBoardController {
   /** 스토리 */
   @UseGuards(AccessTokenGuard)
   @Get('/')
-  async getAlbunBoardList(@Req() req: Request, @Query('_page') page: string) {
-    return await this.albumBoardService.getAlbunBoardList(req, page);
+  async getAlbunBoardList(
+    @Req() req: Request,
+    @Query('_offset') offset: string,
+  ) {
+    return await this.albumBoardService.getAlbunBoardList(req, offset);
   }
 }

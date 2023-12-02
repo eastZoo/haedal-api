@@ -26,7 +26,7 @@ export class AlbumBoardService {
         coupleId: req.user.coupleId,
       });
 
-      const file = filesData.map((item) => ({ ...item, postId: id }));
+      const file = filesData.map((item) => ({ ...item, albumBoardId: id }));
       await queryManager.save(Files, file);
 
       return { success: true };
@@ -36,12 +36,9 @@ export class AlbumBoardService {
     }
   }
 
-  async getAlbunBoardList(req: any, page: string) {
+  async getAlbunBoardList(req: any, offset: string) {
     console.log(req.user);
-    console.log(page);
-
-    console.log(req.user);
-    console.log(page);
+    console.log(offset);
 
     const { coupleId } = req.user;
 
@@ -50,7 +47,9 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
-      .orderBy('album_board.createdAt', 'ASC');
+      .orderBy('album_board.createdAt', 'ASC')
+      .offset(parseInt(offset))
+      .limit(5);
 
     return await queryBuilder.getMany();
 
