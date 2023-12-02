@@ -48,7 +48,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
       .orderBy('album_board.createdAt', 'ASC')
-      .offset(parseInt(offset))
+      .offset(parseInt(offset) + 1)
       .limit(5);
 
     return await queryBuilder.getMany();
