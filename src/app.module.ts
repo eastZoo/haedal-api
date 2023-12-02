@@ -13,6 +13,9 @@ import { AuthModule } from './auth/auth.module';
 import { AlbumBoardModule } from './app/album-board/album-board.module';
 import { CalendarModule } from './app/calendar/calendar.module';
 import * as dotenv from 'dotenv';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { MulterModule } from '@nestjs/platform-express';
 dotenv.config();
 
 @Module({
@@ -33,6 +36,12 @@ dotenv.config();
       synchronize: true,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+    }),
+    MulterModule.register({
+      dest: './uploads',
     }),
     AuthModule,
     AlbumBoardModule,

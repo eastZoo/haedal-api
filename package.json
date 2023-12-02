@@ -29,6 +29,7 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/sequelize": "^10.0.0",
+    "@nestjs/serve-static": "^4.0.0",
     "@nestjs/swagger": "^7.1.14",
     "@nestjs/typeorm": "^10.0.0",
     "@types/bcrypt": "^5.0.1",
