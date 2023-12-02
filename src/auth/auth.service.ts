@@ -272,6 +272,13 @@ export class AuthService {
     }
   }
 
+  async getCoupleId(userId: string) {
+    return this.coupleRepository.findOne({
+      select: ['id'],
+      where: [{ myId: userId }, { partnerId: userId }],
+    });
+  }
+
   insertUser = async (user: SiginUpDto, queryManager: EntityManager) => {
     const newUser = Object.assign(new User(), {
       userEmail: user.userEmail,

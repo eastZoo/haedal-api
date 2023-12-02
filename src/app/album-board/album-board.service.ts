@@ -11,22 +11,30 @@ export class AlbumBoardService {
     private anavadaRepository: Repository<AlbumBoard>,
   ) {}
 
-  async create(filesData: any, queryManager: EntityManager) {
+  async create(
+    filesData: Express.Multer.File[],
+    req: any,
+    queryManager: EntityManager,
+  ) {
     try {
-      console.log(filesData);
+      const post = JSON.parse(req.body.postData);
 
-      //   const { id } = await queryManager.save(AlbumBoard, {
-      //     ...post,
-      //   });
+      const { id } = await queryManager.save(AlbumBoard, {
+        ...post,
+        lat: parseFloat(post.lat),
+        lng: parseFloat(post.lng),
+        userId: req.user.id,
+        coupleId: req.user.coupleId,
+      });
 
-      //   const file = filesData.map((item) => ({ ...item, postId: id }));
-      //   console.log(file);
-      //   await queryManager.save(Files, file);
+      const file = filesData.map((item) => ({ ...item, postId: id }));
+      console.log(file);
+      await queryManager.save(Files, file);
 
       return { success: true };
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('사진을 인식하지 못했습니다.', 500);
+      throw new HttpException('저장에 실패했습니다.', 500);
     }
   }
 }

@@ -26,16 +26,16 @@ export class AlbumBoard {
   @Column({ comment: '제목' })
   title: string;
 
-  @Column({ comment: '내용' })
+  @Column({ comment: '내용', nullable: true })
   content: string;
 
-  @Column({ comment: '위도' })
+  @Column({ comment: '위도', type: 'decimal' })
   lat!: number;
 
-  @Column({ comment: '경도' })
+  @Column({ comment: '경도', type: 'decimal' })
   lng!: number;
 
-  @Column({ comment: '주소' })
+  @Column({ comment: '주소', nullable: true })
   address!: string;
 
   @Column('timestampz')
