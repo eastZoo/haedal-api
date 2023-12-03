@@ -37,7 +37,7 @@ export class AlbumBoardService {
   }
 
   async getAlbunBoardList(req: any, offset: string) {
-    const LIMIT = 3;
+    const LIMIT = 4;
     console.log(req.user);
     console.log(offset);
 
