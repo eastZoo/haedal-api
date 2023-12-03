@@ -37,21 +37,31 @@ export class AlbumBoardService {
   }
 
   async getAlbunBoardList(req: any, offset: string) {
+    const LIMIT = 3;
     console.log(req.user);
     console.log(offset);
 
     const { coupleId } = req.user;
 
-    const queryBuilder = this.albumBoardRepository
+    const total = await this.albumBoardRepository
       .createQueryBuilder('album_board')
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
       .orderBy('album_board.createdAt', 'ASC')
-      .offset(parseInt(offset) + 1)
-      .limit(5);
+      .getMany();
 
-    return await queryBuilder.getMany();
+    const data = await this.albumBoardRepository
+      .createQueryBuilder('album_board')
+      .leftJoinAndSelect('album_board.user', 'user')
+      .leftJoinAndSelect('album_board.files', 'files')
+      .where('album_board.couple_id = :coupleId', { coupleId })
+      .orderBy('album_board.createdAt', 'ASC')
+      .skip(parseInt(offset)) // Calculate the number of items to skip
+      .take(LIMIT) // Se
+      .getMany();
+
+    return { appendData: data, total: total.length };
 
     // const { coupleId } = req.user;
     // const result = await this.albumBoardRepository.find({
