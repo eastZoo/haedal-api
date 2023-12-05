@@ -26,6 +26,9 @@ export class AlbumBoard {
   @Column({ comment: '제목' })
   title: string;
 
+  @Column({ comment: '타입(카페,음식점, 숙소)' })
+  category: string;
+
   @Column({ comment: '내용', nullable: true })
   content: string;
 
