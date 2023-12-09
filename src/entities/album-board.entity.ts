@@ -43,6 +43,10 @@ export class AlbumBoard {
 
   @Column('timestampz')
   @CreateDateColumn()
+  storyDate!: Date;
+
+  @Column('timestampz')
+  @CreateDateColumn()
   createdAt!: Date;
 
   @Column('timestamptz')
