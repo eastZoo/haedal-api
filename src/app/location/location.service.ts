@@ -11,13 +11,12 @@ export class LocationService {
   ) {}
 
   async userLocation(coupleId: string) {
-    return this.albumBoardRepository.find({
-      where: [
-        {
-          coupleId: coupleId,
-        },
-      ],
-      order: { createdAt: 'DESC' },
-    });
+    return this.albumBoardRepository
+      .createQueryBuilder('album_board')
+      .leftJoinAndSelect('album_board.user', 'user')
+      .leftJoinAndSelect('album_board.files', 'files')
+      .where('album_board.couple_id = :coupleId', { coupleId })
+      .orderBy('album_board.createdAt', 'ASC')
+      .getMany();
   }
 }
