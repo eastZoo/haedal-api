@@ -56,7 +56,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
-      .orderBy('album_board.createdAt', 'ASC')
+      .orderBy('album_board.storyDate', 'DESC')
       .skip(parseInt(offset)) // Calculate the number of items to skip
       .take(LIMIT) // Se
       .getMany();
