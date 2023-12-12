@@ -46,10 +46,25 @@ export class AlbumBoardController {
   /** 스토리 */
   @UseGuards(AccessTokenGuard)
   @Get('/')
-  async getAlbunBoardList(
+  async getAlbumBoardList(
     @Req() req: Request,
     @Query('_offset') offset: string,
   ) {
-    return await this.albumBoardService.getAlbunBoardList(req, offset);
+    return await this.albumBoardService.getAlbumBoardList(req, offset);
+  }
+
+  /** 카테고리별 스토리 */
+  @UseGuards(AccessTokenGuard)
+  @Get('/category')
+  async getCategoryAlbumBoardList(
+    @Req() req: Request,
+    @Query('_offset') offset: string,
+    @Query('_category') category: string,
+  ) {
+    return await this.albumBoardService.getCategoryAlbumBoardList(
+      req,
+      offset,
+      category,
+    );
   }
 }

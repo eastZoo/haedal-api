@@ -36,8 +36,8 @@ export class AlbumBoardService {
     }
   }
 
-  async getAlbunBoardList(req: any, offset: string) {
-    const LIMIT = 10;
+  async getAlbumBoardList(req: any, offset: string) {
+    const LIMIT = 15;
     console.log(req.user);
     console.log(offset);
 
@@ -48,7 +48,6 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
-      .orderBy('album_board.createdAt', 'ASC')
       .getMany();
 
     const data = await this.albumBoardRepository
@@ -71,5 +70,34 @@ export class AlbumBoardService {
     // });
 
     // return result;
+  }
+
+  async getCategoryAlbumBoardList(req: any, offset: string, category: string) {
+    const LIMIT = 15;
+    console.log(req.user);
+    console.log(offset);
+    console.log(category);
+    const { coupleId } = req.user;
+
+    const total = await this.albumBoardRepository
+      .createQueryBuilder('album_board')
+      .leftJoinAndSelect('album_board.user', 'user')
+      .leftJoinAndSelect('album_board.files', 'files')
+      .where('album_board.couple_id = :coupleId', { coupleId })
+      .andWhere('album_board.category = :category', { category })
+      .getMany();
+
+    const data = await this.albumBoardRepository
+      .createQueryBuilder('album_board')
+      .leftJoinAndSelect('album_board.user', 'user')
+      .leftJoinAndSelect('album_board.files', 'files')
+      .where('album_board.couple_id = :coupleId', { coupleId })
+      .andWhere('album_board.category = :category', { category })
+      .orderBy('album_board.storyDate', 'DESC')
+      .skip(parseInt(offset)) // Calculate the number of items to skip
+      .take(LIMIT) // Se
+      .getMany();
+
+    return { appendData: data, total: total.length };
   }
 }
