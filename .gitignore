@@ -37,3 +37,7 @@ lerna-debug.log*
 .env
 
 /uploads
+
+# 서버리스 env
+/.build
+/.serverless

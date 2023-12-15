@@ -16,6 +16,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "esModuleInterop": true,
+    "paths": {
+      "src/*": ["src/*"],
+      "entities/*": ["src/entities/*"],
+      "resolvers/*": ["src/resolvers/*"]
+    }
   }
 }
