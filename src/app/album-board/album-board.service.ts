@@ -26,7 +26,11 @@ export class AlbumBoardService {
         coupleId: req.user.coupleId,
       });
 
-      const file = filesData.map((item) => ({ ...item, albumBoardId: id }));
+      const file = filesData.map((item) => ({
+        ...item,
+        albumBoardId: id,
+        coupleId: req.user.coupleId,
+      }));
       await queryManager.save(Files, file);
 
       return { success: true };

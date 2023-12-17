@@ -8,11 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Files } from './files.entity';
-import { AlbumBoardComment } from './album-board-comment.entity';
 
-@Entity({ name: 'label-color' })
+@Entity({ name: 'label_color' })
 export class LabelColor {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

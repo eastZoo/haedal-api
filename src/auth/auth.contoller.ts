@@ -132,4 +132,14 @@ export class AuthController {
     const { id } = req.user;
     return this.authService.onStartConnect(infoDto, id);
   }
+
+  @UseGuards(AccessTokenGuard)
+  @Get('/profile')
+  async getUserProfile(@Request() req: any) {
+    console.log('PROFILELELELELELELL');
+    const { id } = req.user;
+    const result = await this.authService.getUserProfile(id);
+    console.log(result);
+    return result;
+  }
 }

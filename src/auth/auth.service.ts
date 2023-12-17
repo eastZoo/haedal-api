@@ -244,6 +244,13 @@ export class AuthService {
     }
   }
 
+  // 유저 정보 가져오기
+  async getUserProfile(id: string) {
+    return await this.userRepository.findOne({
+      where: { id: id },
+    });
+  }
+
   public async validateUser({
     userEmail,
     password,

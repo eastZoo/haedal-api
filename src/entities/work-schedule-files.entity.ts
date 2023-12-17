@@ -7,14 +7,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { AlbumBoard } from './album-board.entity';
+import { WorkSchedule } from './work-schedule.entity';
 
-@Entity({ name: 'files' })
-export class Files {
+@Entity({ name: 'work_schedule_files' })
+export class WorkScheduleFiles {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column('uuid')
-  albumBoardId?: string;
+  workScheduleId?: string;
 
   @Column('uuid')
   coupleId?: string;
@@ -42,6 +43,9 @@ export class Files {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne((type) => AlbumBoard, (albumBoard) => albumBoard.files)
-  albumBoard: AlbumBoard;
+  @ManyToOne(
+    (type) => WorkSchedule,
+    (workSchedule) => workSchedule.workScheduleFile,
+  )
+  workSchedule: WorkSchedule;
 }
