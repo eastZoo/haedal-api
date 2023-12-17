@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { AlbumBoard } from './album-board.entity';
 import { AlbumBoardComment } from './album-board-comment.entity';
+import { Calendar } from './calendar.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -64,9 +65,12 @@ export class User {
 
   @OneToMany((type) => AlbumBoardComment, (comment) => comment.user)
   comment: AlbumBoardComment;
-  
+
   @OneToMany((type) => AlbumBoard, (albumBoard) => albumBoard.user)
   albumBoard: AlbumBoard;
+
+  @OneToMany((type) => Calendar, (calendar) => calendar.user)
+  calendar: Calendar;
 
   @BeforeInsert()
   async setPassword() {
