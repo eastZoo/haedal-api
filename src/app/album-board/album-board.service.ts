@@ -104,4 +104,29 @@ export class AlbumBoardService {
 
     return { appendData: data, total: total.length };
   }
+
+  async deleteAlbumBoard(
+    queryManager: EntityManager,
+    coupleId: string,
+    boardId: string,
+  ) {
+    try {
+      console.log('HERE');
+      console.log(coupleId);
+      console.log(coupleId);
+
+      await queryManager.delete(Files, {
+        albumBoardId: boardId,
+        coupleId: coupleId,
+      });
+      await queryManager.delete(AlbumBoard, {
+        id: boardId,
+        coupleId: coupleId,
+      });
+
+      return { success: true, message: '삭제 성공' };
+    } catch (e) {
+      return { success: false, message: '삭제 실패' };
+    }
+  }
 }

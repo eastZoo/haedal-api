@@ -9,6 +9,8 @@ import {
   UseInterceptors,
   UseGuards,
   Query,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerDiskOptions } from 'src/common/multerOptions';
@@ -65,6 +67,24 @@ export class AlbumBoardController {
       req,
       offset,
       category,
+    );
+  }
+
+  // 스토리 삭제
+  @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete('/delete/:id')
+  async deleteAlbumBoard(
+    @TransactionManager() queryManager: EntityManager,
+    @Req() req: any,
+    @Param('id') boardId: string,
+  ) {
+    const { coupleId } = req.user;
+
+    return await this.albumBoardService.deleteAlbumBoard(
+      queryManager,
+      coupleId,
+      boardId,
     );
   }
 }
