@@ -16,6 +16,8 @@ export class LocationService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
+      .andWhere('album_board.lat != 0')
+      .andWhere('album_board.lng != 0')
       .orderBy('album_board.createdAt', 'ASC')
       .getMany();
   }
