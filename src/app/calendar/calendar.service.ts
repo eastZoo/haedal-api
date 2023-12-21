@@ -100,15 +100,24 @@ export class CalendarService {
     id: string,
   ) {
     try {
-      console.log('HERE');
-      console.log(id);
-      console.log(coupleId);
-
       await queryManager.delete(WorkScheduleFiles, {
         workScheduleId: id,
         coupleId: coupleId,
       });
       await queryManager.delete(WorkSchedule, { id: id, coupleId: coupleId });
+
+      return { success: true, message: '삭제 성공' };
+    } catch (e) {
+      return { success: false, message: '삭제 실패' };
+    }
+  }
+
+  async deleteCalendarItem(coupleId: string, calendarId: string) {
+    try {
+      await this.calendarRepository.delete({
+        id: calendarId,
+        coupleId: coupleId,
+      });
 
       return { success: true, message: '삭제 성공' };
     } catch (e) {

@@ -48,6 +48,16 @@ export class CalendarController {
     return await this.calendarService.getColorList();
   }
 
+  /** 달력 스토리 삭제 */
+  @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete('/delete/:id')
+  async deleteCalendarItem(@Req() req: any, @Param('id') calendarId: string) {
+    const { coupleId } = req.user;
+
+    return await this.calendarService.deleteCalendarItem(coupleId, calendarId);
+  }
+
   /** 근무표 사진 등록 */
   @UseGuards(AccessTokenGuard)
   @Post('/work-table/create')

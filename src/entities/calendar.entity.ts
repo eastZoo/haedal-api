@@ -9,8 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Files } from './files.entity';
-import { AlbumBoardComment } from './album-board-comment.entity';
 
 @Entity({ name: 'calendar' })
 export class Calendar {
