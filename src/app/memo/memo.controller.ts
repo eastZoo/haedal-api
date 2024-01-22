@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { MemoService } from './memo.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 
@@ -6,10 +6,10 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 export class MemoController {
   constructor(private readonly memoService: MemoService) {}
 
-  /** 캘린더 리스트 가져오기 */
+  /** 메모 전체 리스트 가져오기 */
   @UseGuards(AccessTokenGuard)
   @Get('/')
-  async getScheduleList(@Req() req: any) {
+  async getMemoList(@Req() req: any) {
     return await this.memoService.getMemoList(req);
   }
 
@@ -18,5 +18,12 @@ export class MemoController {
   @Post('/create')
   async create(@Req() req: any) {
     return await this.memoService.create(req);
+  }
+
+  /** 메모 디테일 현재 선택 메모 리스트 */
+  @UseGuards(AccessTokenGuard)
+  @Get('/:id')
+  async getCurrentMemo(@Req() req: any, @Param('id') id: string) {
+    return await this.memoService.getCurrentMemo(id, req);
   }
 }

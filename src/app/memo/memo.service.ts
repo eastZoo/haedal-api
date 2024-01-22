@@ -39,4 +39,18 @@ export class MemoService {
       throw new HttpException('저장에 실패했습니다.', 500);
     }
   }
+
+  async getCurrentMemo(id: string, req: any) {
+    const { coupleId } = req.user;
+
+    const data = await this.memoRepository
+      .createQueryBuilder('memo_category')
+      .where('memo_category.couple_id = :coupleId', { coupleId })
+      .andWhere('memo_category.id = :id', { id })
+      .leftJoinAndSelect('memo_category.memos', 'memo')
+      .getMany();
+
+    console.log('getCurrentMemo : : : : : :', data);
+    return { currentMemo: data };
+  }
 }
