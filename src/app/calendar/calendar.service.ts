@@ -1,7 +1,7 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Calendar } from 'src/entities/calendar.entity';
-import { LabelColor } from 'src/entities/label-color.entity';
+import { CommonCode } from 'src/entities/common_code.entity';
 import { WorkScheduleFiles } from 'src/entities/work-schedule-files.entity';
 import { WorkSchedule } from 'src/entities/work-schedule.entity';
 import { AnyBulkWriteOperation, EntityManager, Repository } from 'typeorm';
@@ -11,8 +11,8 @@ export class CalendarService {
   constructor(
     @InjectRepository(Calendar)
     private readonly calendarRepository: Repository<Calendar>,
-    @InjectRepository(LabelColor)
-    private readonly labelColorRepository: Repository<LabelColor>,
+    @InjectRepository(CommonCode)
+    private readonly CommonCodeRepository: Repository<CommonCode>,
     @InjectRepository(WorkSchedule)
     private readonly workScheduleRepository: Repository<WorkSchedule>,
   ) {}
@@ -44,7 +44,7 @@ export class CalendarService {
   }
 
   async getColorList() {
-    return this.labelColorRepository.find();
+    return this.CommonCodeRepository.find({ where: { codeType: 'LC01' } });
   }
 
   async getCurrentWorkTableUrl(month: string, req: any) {
