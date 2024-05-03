@@ -43,6 +43,7 @@ export class MemoService {
   async getCurrentMemo(id: string, req: any) {
     const { coupleId } = req.user;
 
+    console.log('coupleId ::::', coupleId);
     const data = await this.memoRepository
       .createQueryBuilder('memo_category')
       .where('memo_category.couple_id = :coupleId', { coupleId })
