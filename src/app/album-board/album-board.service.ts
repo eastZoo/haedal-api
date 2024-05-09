@@ -1,5 +1,5 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { AlbumBoard } from 'src/entities/album-board.entity';
 import { Files } from 'src/entities/files.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,16 +9,20 @@ export class AlbumBoardService {
   constructor(
     @InjectRepository(AlbumBoard)
     private albumBoardRepository: Repository<AlbumBoard>,
+    @InjectRepository(Files)
+    private filesRepository: Repository<Files>,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(
-    filesData: Express.Multer.File[],
-    req: any,
-    queryManager: EntityManager,
-  ) {
+  async create(filesData: Express.Multer.File[], req: any) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    // 트랜잭션 시작
+    await queryRunner.startTransaction();
     try {
       const post = JSON.parse(req.body.postData);
-      const { id } = await queryManager.save(AlbumBoard, {
+
+      const albumBoard = await this.albumBoardRepository.save({
         ...post,
         lat: parseFloat(post.lat),
         lng: parseFloat(post.lng),
@@ -26,17 +30,23 @@ export class AlbumBoardService {
         coupleId: req.user.coupleId,
       });
 
+      console.log('!!!!', albumBoard);
+      console.log('!!!!', albumBoard.id);
       const file = filesData.map((item) => ({
         ...item,
-        albumBoardId: id,
+        albumBoardId: albumBoard.id,
         coupleId: req.user.coupleId,
       }));
-      await queryManager.save(Files, file);
+      await this.filesRepository.save(file);
+      // await queryManager.save(Files, file);
+      await queryRunner.commitTransaction();
 
       return { success: true };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
+    } finally {
+      await queryRunner.release();
     }
   }
 

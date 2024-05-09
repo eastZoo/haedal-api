@@ -9,16 +9,22 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'label_color' })
-export class LabelColor {
+@Entity({ name: 'common_code' })
+export class CommonCode {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ comment: '색깔코드' })
+  @Column({ comment: '공통코드 분류 타입' })
+  codeType: string;
+
+  @Column({ comment: '코드' })
   code: string;
 
-  @Column({ comment: '색이름' })
+  @Column({ comment: '이름' })
   name: string;
+
+  @Column({ comment: '기타', nullable: true })
+  remark: string;
 
   @Column('timestamptz')
   @CreateDateColumn()

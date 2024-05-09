@@ -32,16 +32,8 @@ export class AlbumBoardController {
   @UseInterceptors(FilesInterceptor('images', null, multerDiskOptions))
   @UseInterceptors(TransactionInterceptor)
   @Bind(UploadedFiles())
-  async create(
-    filesData: Array<Express.Multer.File>,
-    @Req() req: Request,
-    @TransactionManager() queryManager: EntityManager,
-  ) {
-    const result = await this.albumBoardService.create(
-      filesData,
-      req,
-      queryManager,
-    );
+  async create(filesData: Array<Express.Multer.File>, @Req() req: Request) {
+    const result = await this.albumBoardService.create(filesData, req);
     return;
   }
 

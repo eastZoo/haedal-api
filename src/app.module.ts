@@ -17,6 +17,7 @@ import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { MulterModule } from '@nestjs/platform-express';
 import { LocationModule } from './app/location/location.module';
+import { MemoModule } from './app/memo/memo.module';
 dotenv.config();
 
 @Module({
@@ -48,6 +49,7 @@ dotenv.config();
     AlbumBoardModule,
     CalendarModule,
     LocationModule,
+    MemoModule,
   ],
   controllers: [AppController],
   providers: [

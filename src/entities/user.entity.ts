@@ -13,6 +13,7 @@ import {
 import { AlbumBoard } from './album-board.entity';
 import { AlbumBoardComment } from './album-board-comment.entity';
 import { Calendar } from './calendar.entity';
+import { MemoCategory } from './memo-category.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -71,6 +72,9 @@ export class User {
 
   @OneToMany((type) => Calendar, (calendar) => calendar.user)
   calendar: Calendar;
+
+  @OneToMany((type) => MemoCategory, (memoCategory) => memoCategory.user)
+  memoCategory: MemoCategory;
 
   @BeforeInsert()
   async setPassword() {

@@ -60,6 +60,7 @@ export class AuthController {
   })
   @Post('sign-in')
   siginIn(@Body() siginInDto: SignInDto) {
+    console.log(siginInDto);
     return this.authService.signIn(siginInDto);
   }
 
