@@ -28,7 +28,7 @@ export class Memo {
   @Column({ comment: '메모' })
   memo: string;
 
-  @Column('boolean')
+  @Column({ type: 'boolean', default: false })
   isDone: boolean;
 
   @Column('timestamptz')

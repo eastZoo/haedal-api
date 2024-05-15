@@ -1,33 +1,35 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemoCategory } from 'src/entities/memo-category.entity';
+import { Memo } from 'src/entities/memo.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class MemoService {
   constructor(
     @InjectRepository(MemoCategory)
-    private readonly memoRepository: Repository<MemoCategory>,
+    private readonly memoCategoryRepository: Repository<MemoCategory>,
+    @InjectRepository(Memo)
+    private readonly memoRepository: Repository<Memo>,
   ) {}
 
   async getMemoList(req) {
     const { coupleId } = req.user;
-    const result = await this.memoRepository
+    const result = await this.memoCategoryRepository
       .createQueryBuilder('memo_category')
       .where('memo_category.couple_id = :coupleId', { coupleId })
       .leftJoinAndSelect('memo_category.memos', 'memo')
+      .orderBy('memo_category.created_At', 'DESC')
       .getMany();
 
-    console.log('getMemoList : : : : : :', result);
     return result;
   }
 
-  async create(req: any) {
+  async createMemoCategory(req: any) {
     try {
       const { coupleId, id } = req.user;
-      console.log('memoRepository : : : ', req.body);
 
-      const result = await this.memoRepository.save({
+      await this.memoCategoryRepository.save({
         category: req.body.category,
         userId: id,
         coupleId: coupleId,
@@ -40,18 +42,35 @@ export class MemoService {
     }
   }
 
+  async createMemo(req: any) {
+    try {
+      Logger.log(req.body);
+      const { coupleId, id } = req.user;
+
+      await this.memoRepository.save({
+        memoCategoryId: req.body.categoryId,
+        userId: id,
+        coupleId: coupleId,
+        memo: req.body.memo,
+      });
+
+      return { success: true };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('저장에 실패했습니다.', 500);
+    }
+  }
+
   async getCurrentMemo(id: string, req: any) {
     const { coupleId } = req.user;
 
-    console.log('coupleId ::::', coupleId);
-    const data = await this.memoRepository
+    const data = await this.memoCategoryRepository
       .createQueryBuilder('memo_category')
       .where('memo_category.couple_id = :coupleId', { coupleId })
       .andWhere('memo_category.id = :id', { id })
       .leftJoinAndSelect('memo_category.memos', 'memo')
       .getMany();
 
-    console.log('getCurrentMemo : : : : : :', data);
     return { currentMemo: data };
   }
 }

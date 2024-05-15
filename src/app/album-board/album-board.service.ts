@@ -88,9 +88,6 @@ export class AlbumBoardService {
 
   async getCategoryAlbumBoardList(req: any, offset: string, category: string) {
     const LIMIT = 5;
-    console.log(req.user);
-    console.log(offset);
-    console.log(category);
     const { coupleId } = req.user;
 
     const total = await this.albumBoardRepository
@@ -121,10 +118,6 @@ export class AlbumBoardService {
     boardId: string,
   ) {
     try {
-      console.log('HERE');
-      console.log(coupleId);
-      console.log(coupleId);
-
       await queryManager.delete(Files, {
         albumBoardId: boardId,
         coupleId: coupleId,

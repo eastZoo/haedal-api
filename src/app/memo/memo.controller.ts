@@ -15,9 +15,17 @@ export class MemoController {
 
   /** 메모 카테고리 생성 */
   @UseGuards(AccessTokenGuard)
+  @Post('/category/create')
+  async createMemoCategory(@Req() req: any) {
+    return await this.memoService.createMemoCategory(req);
+  }
+
+  /** 메모 생성 */
+  @UseGuards(AccessTokenGuard)
   @Post('/create')
-  async create(@Req() req: any) {
-    return await this.memoService.create(req);
+  async createMemo(@Req() req: any) {
+    console.log('@!#@!', req.body);
+    return await this.memoService.createMemo(req);
   }
 
   /** 메모 디테일 현재 선택 메모 리스트 */
