@@ -28,6 +28,13 @@ export class MemoController {
     return await this.memoService.createMemo(req);
   }
 
+  /** 메모 아이템 체크 업데이트 */
+  @UseGuards(AccessTokenGuard)
+  @Post('/update/check')
+  async updateMemoItemCheck(@Req() req: any) {
+    return await this.memoService.updateMemoItemCheck(req);
+  }
+
   /** 메모 디테일 현재 선택 메모 리스트 */
   @UseGuards(AccessTokenGuard)
   @Get('/detail/:id')

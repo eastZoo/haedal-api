@@ -20,9 +20,15 @@ export class MemoService {
       .where('memo_category.couple_id = :coupleId', { coupleId })
       .leftJoinAndSelect('memo_category.memos', 'memo')
       .orderBy('memo_category.created_At', 'DESC')
+      .addOrderBy('memo.created_At', 'DESC')
       .getMany();
 
-    return result;
+    const updatedData = result.map((obj) => ({
+      ...obj,
+      clear: obj.memos.filter((memo) => memo.isDone).length,
+    }));
+
+    return updatedData;
   }
 
   async createMemoCategory(req: any) {
@@ -59,6 +65,18 @@ export class MemoService {
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
     }
+  }
+
+  async updateMemoItemCheck(req: any) {
+    const memo = await this.memoRepository.update(
+      { id: req.body.id },
+      { isDone: req.body.isDone },
+    );
+    if (memo.affected === 0) {
+      return { success: false };
+    }
+
+    return { success: true };
   }
 
   async getCurrentMemo(id: string, req: any) {
