@@ -17,10 +17,10 @@ export class CommonCode {
   @Column({ comment: '공통코드 분류 타입' })
   codeType: string;
 
-  @Column({ comment: '코드' })
+  @Column({ comment: '코드', nullable: true })
   code: string;
 
-  @Column({ comment: '이름' })
+  @Column({ comment: '이름', nullable: true })
   name: string;
 
   @Column({ comment: '기타', nullable: true })
