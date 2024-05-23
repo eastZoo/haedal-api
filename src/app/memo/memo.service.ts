@@ -20,6 +20,7 @@ export class MemoService {
     const result = await this.memoCategoryRepository
       .createQueryBuilder('memo_category')
       .where('memo_category.couple_id = :coupleId', { coupleId })
+      .andWhere('memo_category.isDeleted = false')
       .leftJoinAndSelect('memo_category.memos', 'memo')
       .orderBy('memo_category.created_At', 'DESC')
       .addOrderBy('memo.created_At', 'DESC')
@@ -110,6 +111,7 @@ export class MemoService {
       .createQueryBuilder('memo_category')
       .where('memo_category.couple_id = :coupleId', { coupleId })
       .andWhere('memo_category.id = :id', { id })
+      .andWhere('memo_category.isDeleted = false')
       .leftJoinAndSelect('memo_category.memos', 'memo')
       .getMany();
 

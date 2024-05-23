@@ -75,6 +75,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
+      .andWhere('album_board.isDeleted = false')
       .getMany();
 
     const data = await this.albumBoardRepository
@@ -82,6 +83,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
+      .andWhere('album_board.isDeleted = false')
       .orderBy('album_board.storyDate', 'DESC')
       .skip(parseInt(offset)) // Calculate the number of items to skip
       .take(LIMIT) // Se
@@ -109,6 +111,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
       .andWhere('album_board.category = :category', { category })
+      .andWhere('album_board.isDeleted = false')
       .getMany();
 
     const data = await this.albumBoardRepository
@@ -117,6 +120,7 @@ export class AlbumBoardService {
       .leftJoinAndSelect('album_board.files', 'files')
       .where('album_board.couple_id = :coupleId', { coupleId })
       .andWhere('album_board.category = :category', { category })
+      .andWhere('album_board.isDeleted = false')
       .orderBy('album_board.storyDate', 'DESC')
       .skip(parseInt(offset)) // Calculate the number of items to skip
       .take(LIMIT) // Se

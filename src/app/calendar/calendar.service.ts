@@ -62,6 +62,7 @@ export class CalendarService {
     return this.calendarRepository
       .createQueryBuilder('calendar')
       .where('calendar.couple_id = :coupleId', { coupleId })
+      .andWhere('calendar.isDeleted = false')
       .getMany();
   }
 
