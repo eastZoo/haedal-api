@@ -18,6 +18,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { MulterModule } from '@nestjs/platform-express';
 import { LocationModule } from './app/location/location.module';
 import { MemoModule } from './app/memo/memo.module';
+import { AlarmHistoryModule } from './app/alarm-history/alarm-history.module';
 dotenv.config();
 
 @Module({
@@ -50,6 +51,7 @@ dotenv.config();
     CalendarModule,
     LocationModule,
     MemoModule,
+    AlarmHistoryModule,
   ],
   controllers: [AppController],
   providers: [

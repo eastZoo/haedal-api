@@ -3,18 +3,23 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { AlbumBoard } from 'src/entities/album-board.entity';
 import { Files } from 'src/entities/files.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
 
 @Injectable()
 export class AlbumBoardService {
   constructor(
     @InjectRepository(AlbumBoard)
     private albumBoardRepository: Repository<AlbumBoard>,
+
     @InjectRepository(Files)
     private filesRepository: Repository<Files>,
+    private readonly alarmHistoryService: AlarmHistoryService,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(filesData: Express.Multer.File[], req: any) {
+    const { coupleId, id: userId } = req.user;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     // 트랜잭션 시작
@@ -26,20 +31,28 @@ export class AlbumBoardService {
         ...post,
         lat: parseFloat(post.lat),
         lng: parseFloat(post.lng),
-        userId: req.user.id,
-        coupleId: req.user.coupleId,
+        userId: userId,
+        coupleId: coupleId,
       });
-
-      console.log('!!!!', albumBoard);
-      console.log('!!!!', albumBoard.id);
       const file = filesData.map((item) => ({
         ...item,
         albumBoardId: albumBoard.id,
-        coupleId: req.user.coupleId,
+        coupleId: coupleId,
       }));
       await this.filesRepository.save(file);
       // await queryManager.save(Files, file);
       await queryRunner.commitTransaction();
+
+      // 알람 히스토리 저장
+      await this.alarmHistoryService.addAlarmHistory(
+        albumBoard.id,
+        userId,
+        coupleId,
+        'albumboard',
+        'create',
+        filesData.length,
+        post.title,
+      );
 
       return { success: true };
     } catch (error) {
@@ -114,18 +127,29 @@ export class AlbumBoardService {
 
   async deleteAlbumBoard(
     queryManager: EntityManager,
-    coupleId: string,
+    req: any,
     boardId: string,
   ) {
+    const { coupleId, id: userId } = req.user;
     try {
-      await queryManager.delete(Files, {
-        albumBoardId: boardId,
-        coupleId: coupleId,
-      });
-      await queryManager.delete(AlbumBoard, {
-        id: boardId,
-        coupleId: coupleId,
-      });
+      // 삭제가 아닌 isDeleted를 true로 변경
+      await queryManager.update(
+        Files,
+        {
+          albumBoardId: boardId,
+          coupleId: coupleId,
+        },
+        { isDeleted: true },
+      );
+      // 삭제가 아닌 isDeleted를 true로 변경
+      await queryManager.update(
+        AlbumBoard,
+        {
+          id: boardId,
+          coupleId: coupleId,
+        },
+        { isDeleted: true },
+      );
 
       return { success: true, message: '삭제 성공' };
     } catch (e) {

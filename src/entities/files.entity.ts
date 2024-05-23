@@ -44,4 +44,7 @@ export class Files {
 
   @ManyToOne((type) => AlbumBoard, (albumBoard) => albumBoard.files)
   albumBoard: AlbumBoard;
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

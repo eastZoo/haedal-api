@@ -38,6 +38,9 @@ export class AlbumBoardComment {
   @ManyToOne((type) => User, (user) => user.comment)
   user: User;
 
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
+
   // @ManyToOne((type) => User, { onDelete: 'CASCADE' })
   // @JoinColumn()
   // user!: User;

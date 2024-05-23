@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MemoCategory } from 'src/entities/memo-category.entity';
 import { Memo } from 'src/entities/memo.entity';
 import { Repository } from 'typeorm';
+import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
 
 @Injectable()
 export class MemoService {
@@ -11,6 +12,7 @@ export class MemoService {
     private readonly memoCategoryRepository: Repository<MemoCategory>,
     @InjectRepository(Memo)
     private readonly memoRepository: Repository<Memo>,
+    private readonly alarmHistoryService: AlarmHistoryService,
   ) {}
 
   async getMemoList(req) {
@@ -33,13 +35,24 @@ export class MemoService {
 
   async createMemoCategory(req: any) {
     try {
-      const { coupleId, id } = req.user;
+      const { coupleId, id: userId } = req.user;
 
-      await this.memoCategoryRepository.save({
+      const memoCategory = await this.memoCategoryRepository.save({
         category: req.body.category,
-        userId: id,
+        userId: userId,
         coupleId: coupleId,
       });
+
+      // 알람 히스토리 저장
+      await this.alarmHistoryService.addAlarmHistory(
+        memoCategory.id,
+        userId,
+        coupleId,
+        'memoCategory',
+        'create',
+        null,
+        req.body.category,
+      );
 
       return { success: true };
     } catch (error) {
@@ -51,14 +64,25 @@ export class MemoService {
   async createMemo(req: any) {
     try {
       Logger.log(req.body);
-      const { coupleId, id } = req.user;
+      const { coupleId, id: userId } = req.user;
 
-      await this.memoRepository.save({
+      const memo = await this.memoRepository.save({
         memoCategoryId: req.body.categoryId,
-        userId: id,
+        userId: userId,
         coupleId: coupleId,
         memo: req.body.memo,
       });
+
+      // 알람 히스토리 저장
+      await this.alarmHistoryService.addAlarmHistory(
+        memo.id,
+        userId,
+        coupleId,
+        'memo',
+        'create',
+        null,
+        req.body.memo,
+      );
 
       return { success: true };
     } catch (error) {

@@ -45,4 +45,7 @@ export class Memo {
 
   @ManyToOne((type) => MemoCategory, (memoCategory) => memoCategory.memos)
   memoCategory: MemoCategory;
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

@@ -62,4 +62,7 @@ export class AlbumBoard {
 
   @OneToMany((type) => Files, (files) => files.albumBoard)
   files: Files[];
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

@@ -71,11 +71,9 @@ export class AlbumBoardController {
     @Req() req: any,
     @Param('id') boardId: string,
   ) {
-    const { coupleId } = req.user;
-
     return await this.albumBoardService.deleteAlbumBoard(
       queryManager,
-      coupleId,
+      req,
       boardId,
     );
   }
