@@ -40,7 +40,7 @@ export class User {
   @Column({ unique: true, comment: '유저 이메일' })
   userEmail: string;
 
-  @Column({ comment: '유저 비밀번호' })
+  @Column({ comment: '유저 비밀번호', nullable: true })
   password: string;
 
   @Column({ comment: '생일', nullable: true })
