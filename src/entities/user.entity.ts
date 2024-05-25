@@ -30,7 +30,10 @@ export class User {
   @Column({ comment: '로그인 유형' })
   provider: string;
 
-  @Column({ comment: '소셜 프로바이더의 유저 ID (일반 로그인 시 null)' })
+  @Column({
+    comment: '소셜 프로바이더의 유저 ID (일반 로그인 시 null)',
+    nullable: true,
+  })
   providerUserId: string;
 
   @Index()
