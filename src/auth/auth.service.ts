@@ -62,6 +62,7 @@ export class AuthService {
   /** 회원가입 및 로그인  */
   async signUp(siginUpDto: SiginUpDto, queryManager: EntityManager) {
     const user = await this.insertUser(siginUpDto, queryManager);
+
     // 승인 코드 생성
     const code = Math.floor(Math.random() * 89999999) + 10000000;
     await this.coupleRepository.save({
@@ -290,7 +291,8 @@ export class AuthService {
     const newUser = Object.assign(new User(), {
       userEmail: user.userEmail,
       password: user.password,
-      connectState: 1,
+      provider: 'email',
+      connectState: 1, // 회원가입 1단계 승인코드
     });
 
     return await queryManager.save(User, newUser);

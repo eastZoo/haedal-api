@@ -27,6 +27,12 @@ export class User {
   @Column({ comment: '커플테이블 아이디', nullable: true })
   coupleId: string;
 
+  @Column({ comment: '로그인 유형' })
+  provider: string;
+
+  @Column({ comment: '소셜 프로바이더의 유저 ID (일반 로그인 시 null)' })
+  providerUserId: string;
+
   @Index()
   @Column({ unique: true, comment: '유저 이메일' })
   userEmail: string;
