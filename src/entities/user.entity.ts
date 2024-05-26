@@ -84,9 +84,4 @@ export class User {
 
   @OneToMany((type) => MemoCategory, (memoCategory) => memoCategory.user)
   memoCategory: MemoCategory;
-
-  @BeforeInsert()
-  async setPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
 }

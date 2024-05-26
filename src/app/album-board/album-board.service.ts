@@ -41,7 +41,6 @@ export class AlbumBoardService {
       }));
       await this.filesRepository.save(file);
       // await queryManager.save(Files, file);
-      await queryRunner.commitTransaction();
 
       // 알람 히스토리 저장
       await this.alarmHistoryService.addAlarmHistory(
@@ -54,6 +53,7 @@ export class AlbumBoardService {
         post.title,
       );
 
+      await queryRunner.commitTransaction();
       return { success: true };
     } catch (error) {
       Logger.error(error);

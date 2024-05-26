@@ -15,8 +15,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: any) {
     const coupleId = await this.authService.getCoupleId(payload.id);
-    console.log('coupleId   : ', coupleId);
-    // console.log('coupleId[0].id   : ', coupleId[0].id);
+
     return {
       id: payload.id,
       userEmail: payload.userEmail,
