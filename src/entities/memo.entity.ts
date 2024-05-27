@@ -28,7 +28,7 @@ export class Memo {
   @Column({ comment: '메모' })
   memo: string;
 
-  @Column('boolean')
+  @Column({ type: 'boolean', default: false })
   isDone: boolean;
 
   @Column('timestamptz')
@@ -45,4 +45,7 @@ export class Memo {
 
   @ManyToOne((type) => MemoCategory, (memoCategory) => memoCategory.memos)
   memoCategory: MemoCategory;
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

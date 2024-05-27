@@ -53,9 +53,7 @@ export class CalendarController {
   @UseInterceptors(TransactionInterceptor)
   @Delete('/delete/:id')
   async deleteCalendarItem(@Req() req: any, @Param('id') calendarId: string) {
-    const { coupleId } = req.user;
-
-    return await this.calendarService.deleteCalendarItem(coupleId, calendarId);
+    return await this.calendarService.deleteCalendarItem(req, calendarId);
   }
 
   /** 근무표 사진 등록 */

@@ -23,6 +23,21 @@ import { InfoDto } from './dto/info.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: '소셜 로그인 && 회원가입' })
+  @ApiResponse({
+    status: 200,
+    description: '소셜 로그인 && 회원가입',
+    type: Boolean,
+  })
+  @Post('social')
+  @UseInterceptors(TransactionInterceptor)
+  socialLoginRegister(
+    @Body() siginUpDto: SiginUpDto,
+    @TransactionManager() queryManager: EntityManager,
+  ) {
+    return this.authService.socialLoginRegister(siginUpDto);
+  }
+
   @ApiOperation({ summary: '1. 회원가입' })
   @ApiResponse({
     status: 200,
@@ -35,7 +50,7 @@ export class AuthController {
     @Body() siginUpDto: SiginUpDto,
     @TransactionManager() queryManager: EntityManager,
   ) {
-    return this.authService.signUp(siginUpDto, queryManager);
+    return this.authService.signUp(siginUpDto);
   }
 
   @ApiOperation({ summary: '회원가입 취소' })

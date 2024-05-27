@@ -5,9 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Calendar } from 'src/entities/calendar.entity';
 import { CommonCode } from 'src/entities/common_code.entity';
 import { WorkSchedule } from 'src/entities/work-schedule.entity';
+import { AlarmHistoryModule } from '../alarm-history/alarm-history.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Calendar, CommonCode, WorkSchedule])],
+  imports: [
+    TypeOrmModule.forFeature([Calendar, CommonCode, WorkSchedule]),
+    AlarmHistoryModule,
+  ],
   controllers: [CalendarController],
   providers: [CalendarService],
 })

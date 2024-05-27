@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -6,11 +6,12 @@ import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
 
 import { SiginUpDto } from './dto/sign-up.dto';
-import { EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Couple } from 'src/entities/couple.entity';
 import { SignInDto } from './dto/sign-in.dto';
 import { CodeDto } from './dto/code.dto';
 import { InfoDto } from './dto/info.dto';
+import { socialUserDto } from './dto/social-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,77 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Couple)
     private readonly coupleRepository: Repository<Couple>,
+    private readonly dataSource: DataSource,
   ) {}
+
+  /** 소셜 유저 회원가입 및 로그인  */
+  async socialLoginRegister(socialUser: socialUserDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { userEmail, provider, providerUserId } = socialUser;
+      const user = await this.validateSocialUser({
+        provider,
+        providerUserId,
+        userEmail,
+      });
+
+      Logger.log('user  @@@@@@@@@@@:', user);
+
+      if (user) {
+        Logger.log('소설 로그인 성공!!');
+        const payload = {
+          userEmail: user.userEmail,
+          id: user.id,
+        };
+        const accessToken = this.createAccessToken(payload);
+        const refreshToken = this.createRefreshToken(payload);
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        return {
+          success: true,
+          accessToken,
+          refreshToken,
+          connectState: user.connectState,
+        };
+      } else {
+        Logger.log('소설 회원가입 성공!!');
+        // 소셜 로그인 정보가 없다면 회원가입
+        const user = await this.insertUser(socialUser, queryRunner.manager);
+        // 승인 코드 생성
+        const code = Math.floor(Math.random() * 89999999) + 10000000;
+        await queryRunner.manager.save(Couple, {
+          myId: user.id,
+          code: code,
+        });
+
+        const payload = {
+          userEmail: user.userEmail,
+          id: user.id,
+        };
+        const accessToken = this.createAccessToken(payload);
+        const refreshToken = this.createRefreshToken(payload);
+
+        await queryRunner.commitTransaction();
+        await queryRunner.release();
+
+        return {
+          success: true,
+          accessToken,
+          refreshToken,
+          connectState: user.connectState,
+        };
+      }
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      return { success: false, msg: e.response };
+    }
+  }
 
   /**
    * 로그인
@@ -60,28 +131,41 @@ export class AuthService {
   }
 
   /** 회원가입 및 로그인  */
-  async signUp(siginUpDto: SiginUpDto, queryManager: EntityManager) {
-    const user = await this.insertUser(siginUpDto, queryManager);
-    // 승인 코드 생성
-    const code = Math.floor(Math.random() * 89999999) + 10000000;
-    await this.coupleRepository.save({
-      myId: user.id,
-      code: code,
-    });
+  async signUp(siginUpDto: SiginUpDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const payload = {
-      userEmail: user.userEmail,
-      id: user.id,
-    };
-    const accessToken = this.createAccessToken(payload);
-    const refreshToken = this.createRefreshToken(payload);
+    try {
+      const user = await this.insertUser(siginUpDto, queryRunner.manager);
 
-    return {
-      success: true,
-      accessToken,
-      refreshToken,
-      connectState: user.connectState,
-    };
+      console.log('user : ', user);
+      const code = Math.floor(Math.random() * 89999999) + 10000000;
+      await queryRunner.manager.save(Couple, {
+        myId: user.id,
+        code: code,
+      });
+
+      const payload = {
+        userEmail: user.userEmail,
+        id: user.id,
+      };
+      const accessToken = this.createAccessToken(payload);
+      const refreshToken = this.createRefreshToken(payload);
+
+      await queryRunner.commitTransaction();
+      return {
+        success: true,
+        accessToken,
+        refreshToken,
+        connectState: user.connectState,
+      };
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      return { success: false, msg: e.response };
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async siginUpCancel(userEmail: string) {
@@ -251,6 +335,27 @@ export class AuthService {
     });
   }
 
+  /** 소셜 유저 존재 여부 확인 */
+  async validateSocialUser(socialUser: socialUserDto) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          provider: socialUser.provider,
+          providerUserId: socialUser.providerUserId,
+          userEmail: socialUser.userEmail,
+        },
+      });
+
+      if (!user) {
+        return null;
+      }
+
+      return user;
+    } catch (e) {
+      throw new HttpException('서버요청 에러!', 500);
+    }
+  }
+
   public async validateUser({
     userEmail,
     password,
@@ -286,14 +391,28 @@ export class AuthService {
     });
   }
 
-  insertUser = async (user: SiginUpDto, queryManager: EntityManager) => {
-    const newUser = Object.assign(new User(), {
-      userEmail: user.userEmail,
-      password: user.password,
-      connectState: 1,
-    });
+  insertUser = async (
+    user: SiginUpDto | socialUserDto,
+    queryManager: EntityManager,
+  ) => {
+    try {
+      const newUser = Object.assign(new User(), {
+        userEmail: user.userEmail,
+        password:
+          user.provider != 'email'
+            ? null
+            : await bcrypt.hash(user.password, 10), // email이 아닐경우 비밀번호 null 소셜인증으로 이미 인증된 사용자임을 확인
+        provider: user.provider,
+        connectState: 1, // 회원가입 1단계 승인코드
+        providerUserId: user.providerUserId ?? null, // 소설고유 아이디
+      });
 
-    return await queryManager.save(User, newUser);
+      console.log('newUser : ', newUser);
+      return await queryManager.save(User, newUser);
+    } catch (e) {
+      console.log('error : ', e);
+      throw new Error('Failed to insert user');
+    }
   };
 
   createAccessToken = (payload: any) => {

@@ -5,9 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlbumBoard } from 'src/entities/album-board.entity';
 import { Files } from 'src/entities/files.entity';
 import { AlbumBoardComment } from 'src/entities/album-board-comment.entity';
+import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
+import { AlarmHistoryModule } from '../alarm-history/alarm-history.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AlbumBoard, Files, AlbumBoardComment])],
+  imports: [
+    TypeOrmModule.forFeature([AlbumBoard, Files, AlbumBoardComment]),
+    AlarmHistoryModule,
+  ],
   providers: [AlbumBoardService],
   controllers: [AlbumBoardController],
 })

@@ -52,4 +52,7 @@ export class Calendar {
   @ManyToOne((type) => User, (user) => user.calendar)
   @JoinColumn()
   user!: User;
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

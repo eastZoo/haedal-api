@@ -39,4 +39,7 @@ export class MemoCategory {
 
   @OneToMany((type) => Memo, (memo) => memo.memoCategory)
   memos: Memo[];
+
+  @Column({ comment: '삭제 유무', default: false })
+  isDeleted: boolean;
 }

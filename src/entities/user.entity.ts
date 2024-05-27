@@ -27,11 +27,20 @@ export class User {
   @Column({ comment: '커플테이블 아이디', nullable: true })
   coupleId: string;
 
+  @Column({ comment: '로그인 유형' })
+  provider: string;
+
+  @Column({
+    comment: '소셜 프로바이더의 유저 ID (일반 로그인 시 null)',
+    nullable: true,
+  })
+  providerUserId: string;
+
   @Index()
   @Column({ unique: true, comment: '유저 이메일' })
   userEmail: string;
 
-  @Column({ comment: '유저 비밀번호' })
+  @Column({ comment: '유저 비밀번호', nullable: true })
   password: string;
 
   @Column({ comment: '생일', nullable: true })
@@ -75,9 +84,4 @@ export class User {
 
   @OneToMany((type) => MemoCategory, (memoCategory) => memoCategory.user)
   memoCategory: MemoCategory;
-
-  @BeforeInsert()
-  async setPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
 }
