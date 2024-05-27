@@ -405,6 +405,9 @@ export class AuthService {
         provider: user.provider,
         connectState: 1, // 회원가입 1단계 승인코드
         providerUserId: user.providerUserId ?? null, // 소설고유 아이디
+        name: user.name ?? null,
+        sex: user.sex ?? null,
+        birth: user.birth ?? null,
       });
 
       console.log('newUser : ', newUser);
