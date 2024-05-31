@@ -22,8 +22,14 @@ export class MemoCategory {
   @Column('uuid')
   coupleId?: string;
 
-  @Column({ comment: '메모그룹 이름' })
+  @Column({ comment: '메모 분류 카테 고리' })
   category: string;
+
+  @Column({ comment: '메모 분류 제목' })
+  title: string;
+
+  @Column({ comment: '메모그룹 색깔' })
+  color: string;
 
   @Column('timestamptz')
   @CreateDateColumn()

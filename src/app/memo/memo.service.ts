@@ -40,6 +40,8 @@ export class MemoService {
 
       const memoCategory = await this.memoCategoryRepository.save({
         category: req.body.category,
+        title: req.body.title,
+        color: req.body.color,
         userId: userId,
         coupleId: coupleId,
       });
