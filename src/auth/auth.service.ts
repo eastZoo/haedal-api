@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
 
 import { SiginUpDto } from './dto/sign-up.dto';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, Not, Repository } from 'typeorm';
 import { Couple } from 'src/entities/couple.entity';
 import { SignInDto } from './dto/sign-in.dto';
 import { CodeDto } from './dto/code.dto';
@@ -329,10 +329,18 @@ export class AuthService {
   }
 
   // 유저 정보 가져오기
-  async getUserProfile(id: string) {
-    return await this.userRepository.findOne({
-      where: { id: id },
+  async getUserProfile(req: any) {
+    const { id, coupleId } = req.user;
+    const user = await this.userRepository.findOne({
+      where: { id: id, coupleId: coupleId },
     });
+    const partner = await this.userRepository.findOne({
+      where: {
+        coupleId: coupleId,
+        id: Not(id),
+      },
+    });
+    return { user, partner };
   }
 
   /** 소셜 유저 존재 여부 확인 */

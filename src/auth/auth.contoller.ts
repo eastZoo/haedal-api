@@ -153,8 +153,8 @@ export class AuthController {
   @Get('/profile')
   async getUserProfile(@Request() req: any) {
     console.log('PROFILELELELELELELL');
-    const { id } = req.user;
-    const result = await this.authService.getUserProfile(id);
+
+    const result = await this.authService.getUserProfile(req);
     console.log(result);
     return result;
   }
