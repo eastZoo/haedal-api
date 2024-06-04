@@ -22,6 +22,12 @@ export class Couple {
   @Column({ comment: '파트너 아이디', nullable: true })
   partnerId: string;
 
+  @Column({ comment: '처음만난날', nullable: true })
+  firstDay: Date;
+
+  @Column({ comment: '홈 배경화면', nullable: true })
+  homeProfileUrl: Date;
+
   @Column({ comment: '승인 코드' })
   code: number;
 

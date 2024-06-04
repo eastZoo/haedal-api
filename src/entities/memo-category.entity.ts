@@ -25,10 +25,10 @@ export class MemoCategory {
   @Column({ comment: '메모 분류 카테 고리' })
   category: string;
 
-  @Column({ comment: '메모 분류 제목' })
+  @Column({ comment: '메모 분류 제목', nullable: true })
   title: string;
 
-  @Column({ comment: '메모그룹 색깔' })
+  @Column({ comment: '메모그룹 색깔', nullable: true })
   color: string;
 
   @Column('timestamptz')

@@ -16,4 +16,6 @@ export class socialUserDto {
   birth?: string;
   @ApiProperty({ description: '이름' })
   name?: string;
+  @ApiProperty({ description: '프로필 url 주소' })
+  profileUrl?: string;
 }

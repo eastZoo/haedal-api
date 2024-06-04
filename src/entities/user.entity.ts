@@ -27,8 +27,8 @@ export class User {
   @Column({ comment: '커플테이블 아이디', nullable: true })
   coupleId: string;
 
-  @Column({ comment: '로그인 유형' })
-  provider: string;
+  @Column({ comment: '로그인 유형', nullable: true })
+  provider?: string;
 
   @Column({
     comment: '소셜 프로바이더의 유저 ID (일반 로그인 시 null)',
@@ -55,8 +55,11 @@ export class User {
   @Column({ comment: '휴대폰 번호', nullable: true })
   phoneNumber: string;
 
-  @Column({ comment: '처음만난날', nullable: true })
-  firstDay: Date;
+  @Column({ comment: '프로필 이미지', nullable: true })
+  profileUrl: string;
+
+  @Column({ comment: '기분', nullable: true })
+  emotion: string;
 
   @Column({
     comment:

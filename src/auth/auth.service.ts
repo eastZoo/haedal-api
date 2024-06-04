@@ -12,6 +12,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { CodeDto } from './dto/code.dto';
 import { InfoDto } from './dto/info.dto';
 import { socialUserDto } from './dto/social-user.dto';
+import { calculateAge } from 'src/util/calculateAge';
 
 @Injectable()
 export class AuthService {
@@ -316,10 +317,10 @@ export class AuthService {
   /** 개인정보 입력 후 시작하기 */
   async onStartConnect(infoDto: InfoDto, id: string) {
     try {
-      console.log('infoDto : ', infoDto);
+      const age = await calculateAge(infoDto.birth);
       await this.userRepository.update(
         { id: id },
-        { ...infoDto, connectState: 3 },
+        { ...infoDto, age: age, connectState: 3 },
       );
 
       return { success: true, connectState: '3' };
@@ -354,6 +355,7 @@ export class AuthService {
         },
       });
 
+      Logger.log('user  : ', user);
       if (!user) {
         return null;
       }
@@ -416,6 +418,7 @@ export class AuthService {
         name: user.name ?? null,
         sex: user.sex ?? null,
         birth: user.birth ?? null,
+        profileUrl: user.profileUrl ?? null,
       });
 
       console.log('newUser : ', newUser);
