@@ -28,7 +28,7 @@ export class Couple {
   @Column({
     comment: '홈 배경화면',
     nullable: true,
-    default: 'uploads/0762031d-99ff-41f9-b8ba-d20376e52c87.png',
+    default: '48299a07-eab5-44f3-8be5-d784c3369fc9.jpg',
   })
   homeProfileUrl: string;
 

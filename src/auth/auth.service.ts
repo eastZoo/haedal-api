@@ -448,13 +448,12 @@ export class AuthService {
   }
 
   // 홈화면 이미지 업로드
-  async uploadHomeImage(req, file) {
+  async uploadHomeImage(filesData: Express.Multer.File[], req: any) {
     try {
-      Logger.log('file  : ', file);
       await this.coupleRepository.update(
-        { id: req.coupleId },
+        { id: req.user.coupleId },
         {
-          homeProfileUrl: file.path,
+          homeProfileUrl: filesData[0].filename,
         },
       );
 
