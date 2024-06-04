@@ -145,8 +145,7 @@ export class AuthController {
   @Post('/info/connect')
   @UseGuards(AccessTokenGuard)
   onStartConnect(@Request() req: any, @Body() infoDto: InfoDto) {
-    const { id } = req.user;
-    return this.authService.onStartConnect(infoDto, id);
+    return this.authService.onStartConnect(infoDto, req.user);
   }
 
   @UseGuards(AccessTokenGuard)

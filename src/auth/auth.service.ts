@@ -13,6 +13,7 @@ import { CodeDto } from './dto/code.dto';
 import { InfoDto } from './dto/info.dto';
 import { socialUserDto } from './dto/social-user.dto';
 import { calculateAge } from 'src/util/calculateAge';
+import { ReqUserDto } from './dto/req-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -315,12 +316,23 @@ export class AuthService {
   }
 
   /** 개인정보 입력 후 시작하기 */
-  async onStartConnect(infoDto: InfoDto, id: string) {
+  async onStartConnect(infoDto: InfoDto, user: ReqUserDto) {
     try {
       const age = await calculateAge(infoDto.birth);
       await this.userRepository.update(
-        { id: id },
-        { ...infoDto, age: age, connectState: 3 },
+        { id: user.id },
+        {
+          sex: infoDto.sex,
+          name: infoDto.name,
+          birth: infoDto.birth,
+          age: age,
+          connectState: 3,
+        },
+      );
+      // 커플 테이블에 처음만난날 업데이트
+      await this.coupleRepository.update(
+        { id: user.coupleId },
+        { firstDay: infoDto.firstDay },
       );
 
       return { success: true, connectState: '3' };
