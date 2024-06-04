@@ -346,10 +346,32 @@ export class AuthService {
     const { id, coupleId } = req.user;
     // 내정보
     const me = await this.userRepository.findOne({
+      select: [
+        'id',
+        'name',
+        'userEmail',
+        'birth',
+        'age',
+        'sex',
+        'profileUrl',
+        'emotion',
+        'connectState',
+      ],
       where: { id: id, coupleId: coupleId },
     });
     // 파트너 정보
     const partner = await this.userRepository.findOne({
+      select: [
+        'id',
+        'name',
+        'userEmail',
+        'birth',
+        'age',
+        'sex',
+        'profileUrl',
+        'emotion',
+        'connectState',
+      ],
       where: {
         coupleId: coupleId,
         id: Not(id),
@@ -357,6 +379,7 @@ export class AuthService {
     });
     //커플 정보
     const coupleData = await this.coupleRepository.findOne({
+      select: ['id', 'firstDay', 'homeProfileUrl'],
       where: { id: coupleId },
     });
     return { me, partner, coupleData };
