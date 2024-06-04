@@ -7,6 +7,9 @@ import {
   Request,
   UseInterceptors,
   UseGuards,
+  Bind,
+  UploadedFiles,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -18,6 +21,8 @@ import { TransactionInterceptor } from 'src/middleware/transaction.middleware';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { CodeDto } from './dto/code.dto';
 import { InfoDto } from './dto/info.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { multerDiskOptions } from 'src/common/multerOptions';
 
 @Controller('auth')
 export class AuthController {
@@ -152,6 +157,21 @@ export class AuthController {
   @Get('/profile')
   async getUserProfile(@Request() req: any) {
     const result = await this.authService.getUserProfile(req);
+    console.log(result);
+    return result;
+  }
+
+  // 배경화면 이미지 업로드
+  @UseGuards(AccessTokenGuard)
+  @Post('/background')
+  /** FilesInterceptor의 첫번째 속성 이름이 formData의 이미지가 담겨있는 key값과 같아야한다.*/
+  @UseInterceptors(FilesInterceptor('images', null, multerDiskOptions))
+  @Bind(UploadedFiles())
+  async uploadHomeImage(
+    filesData: Array<Express.Multer.File>,
+    @Req() req: Request,
+  ) {
+    const result = await this.authService.uploadHomeImage(filesData, req);
     console.log(result);
     return result;
   }

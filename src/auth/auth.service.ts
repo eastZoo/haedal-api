@@ -108,28 +108,40 @@ export class AuthService {
     user?: User;
     connectState?: number;
   }> {
-    const { userEmail, password } = siginInDto;
-    const user = await this.validateUser({ userEmail, password });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!user) {
-      return {
-        success: false,
-        msg: '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
+    try {
+      const { userEmail, password } = siginInDto;
+      const user = await this.validateUser({ userEmail, password });
+
+      if (!user) {
+        return {
+          success: false,
+          msg: '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
+        };
+      }
+      const payload = {
+        userEmail: user.userEmail,
+        id: user.id,
       };
-    }
-    const payload = {
-      userEmail: user.userEmail,
-      id: user.id,
-    };
-    const accessToken = this.createAccessToken(payload);
-    const refreshToken = this.createRefreshToken(payload);
+      const accessToken = this.createAccessToken(payload);
+      const refreshToken = this.createRefreshToken(payload);
 
-    return {
-      success: true,
-      accessToken,
-      refreshToken,
-      connectState: user.connectState,
-    };
+      await queryRunner.commitTransaction();
+      return {
+        success: true,
+        accessToken,
+        refreshToken,
+        connectState: user.connectState,
+      };
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      return { success: false, msg: e.response };
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   /** 회원가입 및 로그인  */
@@ -430,6 +442,23 @@ export class AuthService {
       }
 
       return user;
+    } catch (e) {
+      throw new HttpException('서버요청 에러!', 500);
+    }
+  }
+
+  // 홈화면 이미지 업로드
+  async uploadHomeImage(req, file) {
+    try {
+      Logger.log('file  : ', file);
+      await this.coupleRepository.update(
+        { id: req.coupleId },
+        {
+          homeProfileUrl: file.path,
+        },
+      );
+
+      return { success: true };
     } catch (e) {
       throw new HttpException('서버요청 에러!', 500);
     }
