@@ -341,19 +341,25 @@ export class AuthService {
     }
   }
 
-  // 유저 정보 가져오기
+  // 커플 정보 가져오기
   async getUserProfile(req: any) {
     const { id, coupleId } = req.user;
-    const user = await this.userRepository.findOne({
+    // 내정보
+    const me = await this.userRepository.findOne({
       where: { id: id, coupleId: coupleId },
     });
+    // 파트너 정보
     const partner = await this.userRepository.findOne({
       where: {
         coupleId: coupleId,
         id: Not(id),
       },
     });
-    return { user, partner };
+    //커플 정보
+    const coupleData = await this.coupleRepository.findOne({
+      where: { id: coupleId },
+    });
+    return { me, partner, coupleData };
   }
 
   /** 소셜 유저 존재 여부 확인 */

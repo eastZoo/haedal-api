@@ -151,8 +151,6 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Get('/profile')
   async getUserProfile(@Request() req: any) {
-    console.log('PROFILELELELELELELL');
-
     const result = await this.authService.getUserProfile(req);
     console.log(result);
     return result;
