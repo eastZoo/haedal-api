@@ -25,8 +25,12 @@ export class Couple {
   @Column({ comment: '처음만난날', nullable: true })
   firstDay: Date;
 
-  @Column({ comment: '홈 배경화면', nullable: true })
-  homeProfileUrl: Date;
+  @Column({
+    comment: '홈 배경화면',
+    nullable: true,
+    default: 'uploads/0762031d-99ff-41f9-b8ba-d20376e52c87.png',
+  })
+  homeProfileUrl: string;
 
   @Column({ comment: '승인 코드' })
   code: number;
