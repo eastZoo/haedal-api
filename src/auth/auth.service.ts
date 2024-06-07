@@ -477,10 +477,7 @@ export class AuthService {
     try {
       const newUser = Object.assign(new User(), {
         userEmail: user.userEmail,
-        password:
-          user.provider != 'email'
-            ? null
-            : await bcrypt.hash(user.password, 10), // email이 아닐경우 비밀번호 null 소셜인증으로 이미 인증된 사용자임을 확인
+        password: null,
         provider: user.provider,
         connectState: 1, // 회원가입 1단계 승인코드
         providerUserId: user.providerUserId ?? null, // 소설고유 아이디
@@ -489,6 +486,17 @@ export class AuthService {
         birth: user.birth ?? null,
         profileUrl: user.profileUrl ?? null,
       });
+
+      // 비밀번호 설정을 위한 switch 문
+      switch (user.provider) {
+        case 'email':
+        case 'developer':
+          newUser.password = await bcrypt.hash(user.password, 10);
+          break;
+        // 다른 provider의 경우 default를 사용하여 null로 유지합니다.
+        default:
+          break;
+      }
 
       console.log('newUser : ', newUser);
       return await queryManager.save(User, newUser);

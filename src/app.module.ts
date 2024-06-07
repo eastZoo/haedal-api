@@ -9,7 +9,7 @@ import { AppService } from './app.service';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { User } from './entities/user.entity';
 import { AuthController } from './auth/auth.contoller';
-import { AuthModule } from './auth/auth.module';
+
 import { AlbumBoardModule } from './app/album-board/album-board.module';
 import { CalendarModule } from './app/calendar/calendar.module';
 import * as dotenv from 'dotenv';
@@ -19,6 +19,9 @@ import { MulterModule } from '@nestjs/platform-express';
 import { LocationModule } from './app/location/location.module';
 import { MemoModule } from './app/memo/memo.module';
 import { AlarmHistoryModule } from './app/alarm-history/alarm-history.module';
+import { AuthModule } from './auth/auth.module';
+import { AdminAuthModule } from './app/admin/auth/admin-auth.module';
+
 dotenv.config();
 
 @Module({
@@ -47,6 +50,7 @@ dotenv.config();
       dest: './uploads',
     }),
     AuthModule,
+    AdminAuthModule,
     AlbumBoardModule,
     CalendarModule,
     LocationModule,
