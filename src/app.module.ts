@@ -21,6 +21,7 @@ import { MemoModule } from './app/memo/memo.module';
 import { AlarmHistoryModule } from './app/alarm-history/alarm-history.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminAuthModule } from './app/admin/auth/admin-auth.module';
+import { UserInfoModule } from './app/admin/user-info/user-info.module';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ dotenv.config();
     LocationModule,
     MemoModule,
     AlarmHistoryModule,
+    UserInfoModule,
   ],
   controllers: [AppController],
   providers: [
