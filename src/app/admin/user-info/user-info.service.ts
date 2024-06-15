@@ -15,7 +15,9 @@ export class UserInfoService {
    */
   async getUsersInfo(): Promise<{}> {
     try {
-      const result = this.userRepository.find();
+      const result = await this.userRepository.find({
+        order: { connectState: 'DESC' },
+      });
 
       return { success: true, data: result };
     } catch (e) {
