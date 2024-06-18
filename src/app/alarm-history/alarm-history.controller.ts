@@ -9,6 +9,6 @@ export class AlarmHistoryController {
   @UseGuards(AccessTokenGuard)
   @Get('/')
   async getAlarmHistoryList(@Req() req: Request) {
-    return await this.alarmHistoryService.getAlarmHistoryList();
+    return await this.alarmHistoryService.getAlarmHistoryList(req);
   }
 }

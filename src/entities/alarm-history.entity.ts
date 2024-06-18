@@ -2,9 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { User } from './user.entity';
 
 //content(내용), pic_qty, type , alarmId
 @Entity({ name: 'alarm_history' })
@@ -40,4 +43,8 @@ export class AlarmHistory {
   @Column('timestamptz')
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @ManyToOne((type) => User, (user) => user.alarmHistory)
+  @JoinColumn()
+  user!: User;
 }

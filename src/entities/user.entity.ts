@@ -14,6 +14,7 @@ import { AlbumBoard } from './album-board.entity';
 import { AlbumBoardComment } from './album-board-comment.entity';
 import { Calendar } from './calendar.entity';
 import { MemoCategory } from './memo-category.entity';
+import { AlarmHistory } from './alarm-history.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -87,4 +88,7 @@ export class User {
 
   @OneToMany((type) => MemoCategory, (memoCategory) => memoCategory.user)
   memoCategory: MemoCategory;
+
+  @OneToMany((type) => AlarmHistory, (alarmHistory) => alarmHistory.user)
+  alarmHistory: AlarmHistory;
 }

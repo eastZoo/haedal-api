@@ -130,6 +130,8 @@ export class AuthService {
       const refreshToken = this.createRefreshToken(payload);
 
       await queryRunner.commitTransaction();
+      await queryRunner.release();
+
       return {
         success: true,
         accessToken,
@@ -138,9 +140,8 @@ export class AuthService {
       };
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      return { success: false, msg: e.response };
-    } finally {
       await queryRunner.release();
+      return { success: false, msg: e.response };
     }
   }
 

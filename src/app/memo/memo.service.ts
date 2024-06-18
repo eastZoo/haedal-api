@@ -54,7 +54,7 @@ export class MemoService {
         'memoCategory',
         'create',
         null,
-        req.body.category,
+        req.body.title,
       );
 
       return { success: true };
