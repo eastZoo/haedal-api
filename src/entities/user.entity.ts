@@ -25,7 +25,7 @@ export class User {
   @Column({ comment: '유저 이름', nullable: true })
   name: string;
 
-  @Column({ comment: '커플테이블 아이디', nullable: true })
+  @Column({ type: 'uuid', comment: '커플테이블 아이디', nullable: true })
   coupleId: string;
 
   @Column({ comment: '로그인 유형', nullable: true })

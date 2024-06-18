@@ -24,10 +24,12 @@ export class AdminAuthService {
   async signIn(siginInDto: SignInDto): Promise<{
     success: boolean;
     msg?: string;
-    accessToken?: string;
-    refreshToken?: string;
-    user?: User;
-    connectState?: number;
+    data?: {
+      accessToken?: string;
+      refreshToken?: string;
+      user?: User;
+      connectState?: number;
+    };
   }> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -53,8 +55,10 @@ export class AdminAuthService {
       await queryRunner.commitTransaction();
       return {
         success: true,
-        accessToken,
-        refreshToken,
+        data: {
+          accessToken,
+          refreshToken,
+        },
       };
     } catch (e) {
       await queryRunner.rollbackTransaction();
