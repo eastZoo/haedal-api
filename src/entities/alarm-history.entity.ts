@@ -27,6 +27,9 @@ export class AlarmHistory {
   @Column({ comment: '내용', nullable: true })
   content?: string;
 
+  @Column({ comment: '서브내용', nullable: true })
+  sub_content?: string;
+
   @Column({ comment: 'crud 타입', nullable: true })
   crud?: string;
 

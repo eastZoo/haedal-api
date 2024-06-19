@@ -29,6 +29,7 @@ export class CalendarService {
         coupleId: coupleId,
       });
 
+      console.log(req.body);
       console.log(
         calendar.id,
         userId,
@@ -37,6 +38,7 @@ export class CalendarService {
         'create',
         0,
         req.body.title,
+        req.body.startDate, // sub_content - 시작날짜
       );
       // 알람 히스토리 저장
       await this.alarmHistoryService.addAlarmHistory(
@@ -47,6 +49,7 @@ export class CalendarService {
         'create',
         null,
         req.body.title,
+        req.body.startDate, // sub_content - 시작날짜
       );
 
       return { success: true };

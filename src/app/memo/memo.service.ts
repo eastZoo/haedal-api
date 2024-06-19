@@ -76,6 +76,13 @@ export class MemoService {
         memo: req.body.memo,
       });
 
+      // 메모 카테고리 이름 가져오기
+      const { title: categoryName } = await this.memoCategoryRepository.findOne(
+        {
+          where: { id: req.body.categoryId },
+        },
+      );
+
       // 알람 히스토리 저장
       await this.alarmHistoryService.addAlarmHistory(
         memo.id,
@@ -84,7 +91,8 @@ export class MemoService {
         'memo',
         'create',
         null,
-        req.body.memo,
+        categoryName, // 카테고리 이름
+        req.body.memo, // 메모 내용
       );
 
       return { success: true };

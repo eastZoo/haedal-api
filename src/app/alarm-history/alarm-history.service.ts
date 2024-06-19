@@ -20,6 +20,7 @@ export class AlarmHistoryService {
     crud: string,
     pic_qty?: number,
     content?: string,
+    sub_content?: string,
   ) {
     try {
       await this.alarmHistoryRepository.save({
@@ -30,6 +31,7 @@ export class AlarmHistoryService {
         crud,
         pic_qty,
         content,
+        sub_content,
       });
 
       return { success: true };
