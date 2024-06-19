@@ -2,6 +2,7 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { read } from 'fs';
 import { AlarmHistory } from 'src/entities/alarm-history.entity';
+import { AlarmReadStatus } from 'src/entities/alarm_read_status.entity';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class AlarmHistoryService {
   constructor(
     @InjectRepository(AlarmHistory)
     private readonly alarmHistoryRepository: Repository<AlarmHistory>,
+    @InjectRepository(AlarmReadStatus)
+    private readonly alarmReadStatusRepository: Repository<AlarmReadStatus>,
   ) {}
 
   /** 사용자의 활동에 대한 내역 저장 */
@@ -42,14 +45,24 @@ export class AlarmHistoryService {
   }
 
   async getAlarmHistoryList(req: any) {
-    const { coupleId } = req.user;
+    const { coupleId, id: userId } = req.user;
+
+    console.log('userId  @@@@@@@@@@@:', userId);
+    console.log('coupleId  @@@@@@@@@@@:', coupleId);
     try {
       const alarmHistoryList = await this.alarmHistoryRepository
         .createQueryBuilder('alarmHistory')
-        .leftJoin('alarmHistory.user', 'user') // user 테이블과 조인
-        .addSelect('user.profileUrl') // user의 profileUrl 필드만 선택
-        .addSelect('user.name') // user의 name 필드만 선택
-        .where('alarmHistory.coupleId = :coupleId', { coupleId: coupleId })
+        .leftJoin('alarmHistory.user', 'user')
+        .addSelect('user.profileUrl')
+        .addSelect('user.name')
+        .leftJoin(
+          'alarmHistory.alarmReadStatuses',
+          'alarmReadStatus',
+          'alarmReadStatus.user_id = :userId',
+          { userId },
+        )
+        .addSelect('alarmReadStatus.isRead')
+        .where('alarmHistory.coupleId = :coupleId', { coupleId })
         .orderBy('alarmHistory.createdAt', 'DESC')
         .getMany();
 
@@ -57,6 +70,30 @@ export class AlarmHistoryService {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('알람 히스토리 조회에 실패했습니다.', 500);
+    }
+  }
+
+  async readAlarmHistory(req: any, alarmId: string) {
+    const { id: userId } = req.user;
+    try {
+      const alarmReadStatus = await this.alarmReadStatusRepository.findOne({
+        where: { alarmHistoryId: alarmId, userId },
+      });
+
+      if (!alarmReadStatus) {
+        const newStatus = this.alarmReadStatusRepository.create({
+          alarmHistoryId: alarmId,
+          userId: userId,
+          isRead: true,
+        });
+        await this.alarmReadStatusRepository.save(newStatus);
+      } else if (!alarmReadStatus.isRead) {
+        alarmReadStatus.isRead = true;
+        await this.alarmReadStatusRepository.save(alarmReadStatus);
+      }
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('알람 히스토리 읽음 처리에 실패했습니다.', 500);
     }
   }
 }

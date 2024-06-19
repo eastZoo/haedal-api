@@ -4,15 +4,16 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
+import { AlarmReadStatus } from './alarm_read_status.entity';
 
-//content(내용), pic_qty, type , alarmId
 @Entity({ name: 'alarm_history' })
 export class AlarmHistory {
-  @PrimaryGeneratedColumn({ comment: '게시글/캘린더 uuid' })
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ comment: '알람 id(다른 게시판의 id)' })
@@ -33,21 +34,22 @@ export class AlarmHistory {
   @Column({ comment: 'crud 타입', nullable: true })
   crud?: string;
 
-  @Column('uuid')
+  @Column({ type: 'uuid', comment: '알람 행동 유저 id' })
   userId?: string;
 
-  @Column('uuid')
+  @Column({ type: 'uuid', comment: '커플 공통 id' })
   coupleId?: string;
 
-  @Column('timestampz')
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @Column('timestamptz')
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
   @ManyToOne((type) => User, (user) => user.alarmHistory)
   @JoinColumn()
   user!: User;
+
+  @OneToMany(() => AlarmReadStatus, (status) => status.alarmHistory)
+  alarmReadStatuses!: AlarmReadStatus[];
 }

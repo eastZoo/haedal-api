@@ -1,20 +1,19 @@
-import * as bcrypt from 'bcrypt';
 import {
   BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
   Index,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { AlbumBoard } from './album-board.entity';
 import { AlbumBoardComment } from './album-board-comment.entity';
 import { Calendar } from './calendar.entity';
 import { MemoCategory } from './memo-category.entity';
 import { AlarmHistory } from './alarm-history.entity';
+import { AlbumBoard } from './album-board.entity';
+import { AlarmReadStatus } from './alarm_read_status.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -69,12 +68,10 @@ export class User {
   })
   connectState: number;
 
-  @Column('timestampz')
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @Column('timestamptz')
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
   @OneToMany((type) => AlbumBoardComment, (comment) => comment.user)
@@ -91,4 +88,7 @@ export class User {
 
   @OneToMany((type) => AlarmHistory, (alarmHistory) => alarmHistory.user)
   alarmHistory: AlarmHistory;
+
+  @OneToMany(() => AlarmReadStatus, (alarmReadStatus) => alarmReadStatus.user)
+  alarmReadStatuses!: AlarmReadStatus[];
 }
