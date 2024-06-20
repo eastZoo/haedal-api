@@ -58,7 +58,7 @@ export class AlarmHistoryService {
         .leftJoin(
           'alarmHistory.alarmReadStatuses',
           'alarmReadStatus',
-          'alarmReadStatus.user_id = :userId',
+          'alarmReadStatus.userId = :userId',
           { userId },
         )
         .addSelect('alarmReadStatus.isRead')
@@ -66,7 +66,19 @@ export class AlarmHistoryService {
         .orderBy('alarmHistory.createdAt', 'DESC')
         .getMany();
 
-      return { success: true, alarmHistoryList: alarmHistoryList };
+      // Transform the result
+      const transformedResult = alarmHistoryList.map((alarm) => {
+        const isRead =
+          alarm.alarmReadStatuses.length > 0
+            ? alarm.alarmReadStatuses[0].isRead
+            : false;
+        return {
+          ...alarm,
+          alarmReadStatuses: isRead,
+        };
+      });
+
+      return { success: true, alarmHistoryList: transformedResult };
     } catch (error) {
       Logger.error(error);
       throw new HttpException('알람 히스토리 조회에 실패했습니다.', 500);
@@ -94,6 +106,30 @@ export class AlarmHistoryService {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('알람 히스토리 읽음 처리에 실패했습니다.', 500);
+    }
+  }
+
+  async getUnreadAlarmCount(req: any) {
+    const { id: userId, coupleId } = req.user;
+    try {
+      const unreadAlarmCount = await this.alarmHistoryRepository
+        .createQueryBuilder('alarmHistory')
+        .leftJoin(
+          'alarmHistory.alarmReadStatuses',
+          'alarmReadStatus',
+          'alarmReadStatus.alarmHistoryId = alarmHistory.id AND alarmReadStatus.userId = :userId',
+          { userId },
+        )
+        .where('alarmHistory.coupleId = :coupleId', { coupleId })
+        .andWhere(
+          'alarmReadStatus.isRead IS NULL OR alarmReadStatus.isRead = false',
+        )
+        .getCount();
+
+      return { success: true, unreadAlarmCount };
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('안 읽은 알람 개수 조회에 실패했습니다.', 500);
     }
   }
 }

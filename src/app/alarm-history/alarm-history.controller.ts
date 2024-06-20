@@ -20,4 +20,10 @@ export class AlarmHistoryController {
   ) {
     return await this.alarmHistoryService.readAlarmHistory(req, alarmId);
   }
+
+  @UseGuards(AccessTokenGuard)
+  @Get('/unread-all')
+  async getUnreadAlarmCount(@Req() req: Request) {
+    return await this.alarmHistoryService.getUnreadAlarmCount(req);
+  }
 }
