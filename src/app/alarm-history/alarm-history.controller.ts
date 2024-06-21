@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { AlarmHistoryService } from './alarm-history.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { Request } from 'express';
 
 @Controller('alarm-history')
 export class AlarmHistoryController {
