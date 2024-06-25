@@ -484,6 +484,7 @@ export class AuthService {
         providerUserId: user.providerUserId ?? null, // 소설고유 아이디
         name: user.name ?? null,
         sex: user.sex ?? null,
+        emotion: '😍',
         birth: user.birth ?? null,
         profileUrl: user.profileUrl ?? null,
       });
