@@ -175,4 +175,16 @@ export class AuthController {
     console.log(result);
     return result;
   }
+
+  @ApiOperation({ summary: '고객 탈퇴' })
+  @ApiResponse({
+    status: 200,
+    type: Number,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get('/destroy')
+  deleteUser(@Request() req: any) {
+    const { id } = req.user;
+    return this.authService.deleteUser(id);
+  }
 }

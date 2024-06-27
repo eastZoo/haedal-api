@@ -61,6 +61,9 @@ export class User {
   @Column({ comment: '기분', nullable: true })
   emotion: string;
 
+  @Column({ comment: '삭제여부', nullable: true, default: false })
+  deleteFlag: boolean;
+
   @Column({
     comment:
       '연결 진행 상태( 1: 승인코드 미입력 , 2:개인정보 미입력, 3: 모두입력 )',

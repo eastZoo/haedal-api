@@ -471,6 +471,16 @@ export class AuthService {
     });
   }
 
+  async deleteUser(userId: string) {
+    try {
+      await this.userRepository.update({ id: userId }, { deleteFlag: true });
+
+      return { success: true };
+    } catch (e) {
+      return { success: false, msg: e.response };
+    }
+  }
+
   insertUser = async (
     user: SiginUpDto | socialUserDto,
     queryManager: EntityManager,
