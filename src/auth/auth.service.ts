@@ -464,6 +464,7 @@ export class AuthService {
     }
   }
 
+  // 커플 아이디 획득 함수
   async getCoupleId(userId: string) {
     return this.coupleRepository.findOne({
       select: ['id'],
@@ -471,10 +472,25 @@ export class AuthService {
     });
   }
 
+  // 유저 삭제
   async deleteUser(userId: string) {
     try {
       await this.userRepository.update({ id: userId }, { deleteFlag: true });
 
+      return { success: true };
+    } catch (e) {
+      return { success: false, msg: e.response };
+    }
+  }
+
+  // 이모션 기분 수정
+  async updateEmotion(req: any) {
+    const { id: userId } = req.user;
+    try {
+      await this.userRepository.update(
+        { id: userId },
+        { emotion: req.body.emotion },
+      );
       return { success: true };
     } catch (e) {
       return { success: false, msg: e.response };
