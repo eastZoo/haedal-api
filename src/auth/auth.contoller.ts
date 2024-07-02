@@ -187,4 +187,15 @@ export class AuthController {
     const { id } = req.user;
     return this.authService.deleteUser(id);
   }
+
+  @ApiOperation({ summary: '이모션 수정' })
+  @ApiResponse({
+    status: 200,
+    type: Number,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Post('/emotion')
+  updateEmotion(@Request() req: any) {
+    return this.authService.updateEmotion(req);
+  }
 }
