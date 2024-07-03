@@ -34,6 +34,8 @@ export class AuthService {
 
     try {
       const { userEmail, provider, providerUserId } = socialUser;
+
+      // 유저 정보가 있는지 확인
       const user = await this.validateSocialUser({
         provider,
         providerUserId,
@@ -61,11 +63,16 @@ export class AuthService {
           connectState: user.connectState,
         };
       } else {
-        Logger.log('소설 회원가입 성공!!');
+        Logger.log('소설 회원가입 시작!!');
         // 소셜 로그인 정보가 없다면 회원가입
         const user = await this.insertUser(socialUser, queryRunner.manager);
+        Logger.log('소설 회원가입 시작!!', user);
+
         // 승인 코드 생성
         const code = Math.floor(Math.random() * 89999999) + 10000000;
+
+        Logger.log('code!!', code);
+
         await queryRunner.manager.save(Couple, {
           myId: user.id,
           code: code,
@@ -75,12 +82,21 @@ export class AuthService {
           userEmail: user.userEmail,
           id: user.id,
         };
+
+        Logger.log('payload!!', payload);
+
         const accessToken = this.createAccessToken(payload);
         const refreshToken = this.createRefreshToken(payload);
 
         await queryRunner.commitTransaction();
         await queryRunner.release();
 
+        console.log({
+          success: true,
+          accessToken,
+          refreshToken,
+          connectState: user.connectState,
+        });
         return {
           success: true,
           accessToken,
@@ -401,13 +417,25 @@ export class AuthService {
   /** 소셜 유저 존재 여부 확인 */
   async validateSocialUser(socialUser: socialUserDto) {
     try {
-      const user = await this.userRepository.findOne({
-        where: {
-          provider: socialUser.provider,
-          providerUserId: socialUser.providerUserId,
-          userEmail: socialUser.userEmail,
-        },
-      });
+      let user = null;
+
+      if (socialUser.provider === 'apple') {
+        user = await this.userRepository.findOne({
+          where: {
+            provider: socialUser.provider,
+            providerUserId: socialUser.providerUserId,
+          },
+        });
+      } else {
+        // 소셜 로그인 provider가 apple이 아닌경우 (kakao, naver)
+        user = await this.userRepository.findOne({
+          where: {
+            provider: socialUser.provider,
+            providerUserId: socialUser.providerUserId,
+            userEmail: socialUser.userEmail,
+          },
+        });
+      }
 
       Logger.log('user  : ', user);
       if (!user) {
