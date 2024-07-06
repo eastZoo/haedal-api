@@ -386,7 +386,7 @@ export class AuthService {
         'emotion',
         'connectState',
       ],
-      where: { id: id, coupleId: coupleId },
+      where: { id: id },
     });
     // 파트너 정보
     const partner = await this.userRepository.findOne({
@@ -503,9 +503,15 @@ export class AuthService {
   // 유저 삭제
   async deleteUser(userId: string) {
     try {
+      const user = await this.getMyInfo(userId);
+
       await this.userRepository.update({ id: userId }, { deleteFlag: true });
 
-      return { success: true };
+      if (user.provider === 'apple') {
+        return { success: true, msg: 'apple' };
+      } else {
+        return { success: true, msg: 'delete success' };
+      }
     } catch (e) {
       return { success: false, msg: e.response };
     }
@@ -524,6 +530,18 @@ export class AuthService {
       return { success: false, msg: e.response };
     }
   }
+
+  getMyInfo = async (userId: string) => {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      return user;
+    } catch (e) {
+      throw new HttpException('서버요청 에러!', 500);
+    }
+  };
 
   insertUser = async (
     user: SiginUpDto | socialUserDto,
