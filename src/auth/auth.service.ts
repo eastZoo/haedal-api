@@ -14,6 +14,7 @@ import { InfoDto } from './dto/info.dto';
 import { socialUserDto } from './dto/social-user.dto';
 import { calculateAge } from 'src/util/calculateAge';
 import { ReqUserDto } from './dto/req-user.dto';
+import { maskEmail } from 'src/util/maskEmail';
 
 @Injectable()
 export class AuthService {
@@ -531,7 +532,7 @@ export class AuthService {
     }
   }
 
-  getMyInfo = async (userId: string) => {
+  async getMyInfo(userId: string) {
     try {
       const user = await this.userRepository.findOne({
         where: { id: userId },
@@ -541,7 +542,29 @@ export class AuthService {
     } catch (e) {
       throw new HttpException('서버요청 에러!', 500);
     }
-  };
+  }
+
+  async getFindId(req: any) {
+    try {
+      console.log(req.body.name, req.body.birth);
+
+      const user = await this.userRepository.findOne({
+        where: { name: req.body.name, birth: req.body.birth },
+      });
+
+      if (user === null) {
+        return { success: false, msg: '존재하지 않는 회원입니다.' };
+      }
+      const maskUserEmail = await maskEmail(user.userEmail);
+
+      return { success: true, userEmail: maskUserEmail };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('존재하지 않는 회원입니다.', 500);
+    }
+  }
+
+  // ================================== 회원가입 함수 ==================================
 
   insertUser = async (
     user: SiginUpDto | socialUserDto,

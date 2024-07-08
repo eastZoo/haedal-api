@@ -198,4 +198,14 @@ export class AuthController {
   updateEmotion(@Request() req: any) {
     return this.authService.updateEmotion(req);
   }
+
+  @ApiOperation({ summary: '아이디 찾기(이름, 생일)' })
+  @ApiResponse({
+    status: 200,
+    type: Number,
+  })
+  @Post('/find-id')
+  getFindId(@Request() req: any) {
+    return this.authService.getFindId(req);
+  }
 }
