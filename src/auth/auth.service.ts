@@ -552,6 +552,7 @@ export class AuthService {
         where: { name: req.body.name, birth: req.body.birth },
       });
 
+      console.log(user);
       if (user === null) {
         return { success: false, msg: '존재하지 않는 회원입니다.' };
       }
