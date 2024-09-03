@@ -85,23 +85,38 @@ export class AlarmHistoryService {
     }
   }
 
-  async readAlarmHistory(req: any, alarmId: string) {
-    const { id: userId } = req.user;
+  async readAlarmHistory(req: any) {
+    const { coupleId, id: userId } = req.user;
     try {
-      const alarmReadStatus = await this.alarmReadStatusRepository.findOne({
-        where: { alarmHistoryId: alarmId, userId },
+      // 해당 커플의 알람 히스토리를 가져옵니다.
+      const alarmHistory = await this.alarmHistoryRepository.find({
+        where: { coupleId },
       });
 
-      if (!alarmReadStatus) {
-        const newStatus = this.alarmReadStatusRepository.create({
-          alarmHistoryId: alarmId,
+      // 현재 사용자와 연관된 alarmReadStatus를 가져옵니다.
+      const alarmReadStatus = await this.alarmReadStatusRepository.find({
+        where: {
           userId: userId,
-          isRead: true,
-        });
-        await this.alarmReadStatusRepository.save(newStatus);
-      } else if (!alarmReadStatus.isRead) {
-        alarmReadStatus.isRead = true;
-        await this.alarmReadStatusRepository.save(alarmReadStatus);
+          alarmHistoryId: In(alarmHistory.map((alarm) => alarm.id)),
+        },
+      });
+
+      // alarmHistory에 있는 항목들 중 alarmReadStatus에 없는 항목을 필터링합니다.
+      const unreadAlarms = alarmHistory.filter(
+        (alarm) =>
+          !alarmReadStatus.some((status) => status.alarmHistoryId === alarm.id),
+      );
+
+      // 새로 생성해야 할 alarmReadStatus 항목을 만듭니다.
+      const newAlarmReadStatuses = unreadAlarms.map((alarm) => ({
+        alarmHistoryId: alarm.id,
+        userId: userId,
+        isRead: true,
+      }));
+
+      // 새로 생성된 alarmReadStatus 항목들을 저장합니다.
+      if (newAlarmReadStatuses.length > 0) {
+        await this.alarmReadStatusRepository.save(newAlarmReadStatuses);
       }
     } catch (error) {
       Logger.error(error);

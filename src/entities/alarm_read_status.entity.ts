@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { AlarmHistory } from './alarm-history.entity';
@@ -18,7 +19,7 @@ export class AlarmReadStatus {
   @Column('uuid')
   userId!: string;
 
-  @Column('uuid')
+  @PrimaryColumn('uuid')
   alarmHistoryId!: string;
 
   @Column({ type: 'boolean', default: false, comment: '읽음 상태' })

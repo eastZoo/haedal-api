@@ -476,6 +476,7 @@ export class AuthService {
       throw new HttpException('서버요청 에러!', 500);
     }
   }
+  
 
   // 홈화면 이미지 업로드
   async uploadHomeImage(filesData: Express.Multer.File[], req: any) {
@@ -484,6 +485,23 @@ export class AuthService {
         { id: req.user.coupleId },
         {
           homeProfileUrl: filesData[0].filename,
+        },
+      );
+
+      return { success: true };
+    } catch (e) {
+      throw new HttpException('서버요청 에러!', 500);
+    }
+  }
+
+  // 프로필 이미지 업로드
+  async uploadProfileImage(filesData: Express.Multer.File[], req: any) {
+    try {
+      console.log('filesData : ', filesData);
+      await this.userRepository.update(
+        { id: req.user.coupleId },
+        {
+          profileUrl: filesData[0].filename,
         },
       );
 

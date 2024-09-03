@@ -176,6 +176,21 @@ export class AuthController {
     return result;
   }
 
+  // 프로필 이미지 업로드
+  @UseGuards(AccessTokenGuard)
+  @Post('/profile')
+  /** FilesInterceptor의 첫번째 속성 이름이 formData의 이미지가 담겨있는 key값과 같아야한다.*/
+  @UseInterceptors(FilesInterceptor('images', null, multerDiskOptions))
+  @Bind(UploadedFiles())
+  async uploadProfileImage(
+    filesData: Array<Express.Multer.File>,
+    @Req() req: Request,
+  ) {
+    const result = await this.authService.uploadProfileImage(filesData, req);
+    console.log(result);
+    return result;
+  }
+
   @ApiOperation({ summary: '고객 탈퇴' })
   @ApiResponse({
     status: 200,

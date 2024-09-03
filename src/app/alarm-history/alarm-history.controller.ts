@@ -14,12 +14,9 @@ export class AlarmHistoryController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get('/read/:alarmId')
-  async readAlarmHistory(
-    @Req() req: Request,
-    @Param('alarmId') alarmId: string, // @Param() 데코레이터를 사용하여 경로 매개변수 추출
-  ) {
-    return await this.alarmHistoryService.readAlarmHistory(req, alarmId);
+  @Get('/read')
+  async readAlarmHistory(@Req() req: Request) {
+    return await this.alarmHistoryService.readAlarmHistory(req);
   }
 
   @UseGuards(AccessTokenGuard)
