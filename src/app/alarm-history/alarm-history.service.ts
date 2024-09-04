@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { read } from 'fs';
 import { AlarmHistory } from 'src/entities/alarm-history.entity';
 import { AlarmReadStatus } from 'src/entities/alarm_read_status.entity';
+import { responseObj } from 'src/util/responseObj';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
@@ -26,7 +27,7 @@ export class AlarmHistoryService {
     sub_content?: string,
   ) {
     try {
-      await this.alarmHistoryRepository.save({
+      const { id } = await this.alarmHistoryRepository.save({
         alarmId,
         userId,
         coupleId,
@@ -37,7 +38,7 @@ export class AlarmHistoryService {
         sub_content,
       });
 
-      return { success: true };
+      return responseObj.success({ id });
     } catch (error) {
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
@@ -86,6 +87,7 @@ export class AlarmHistoryService {
   }
 
   async readAlarmHistory(req: any) {
+    Logger.log('알람 ');
     const { coupleId, id: userId } = req.user;
     try {
       // 해당 커플의 알람 히스토리를 가져옵니다.
@@ -145,6 +147,20 @@ export class AlarmHistoryService {
     } catch (error) {
       Logger.error(error);
       throw new HttpException('안 읽은 알람 개수 조회에 실패했습니다.', 500);
+    }
+  }
+
+  /** 나의 활동에대한 알림은 동시 읽음 처리 */
+  async addMyAlarmReadStatus(alarmHistoryId: string, userId: string) {
+    try {
+      await this.alarmReadStatusRepository.save({
+        alarmHistoryId: alarmHistoryId,
+        userId: userId,
+        isRead: true,
+      });
+    } catch (error) {
+      Logger.error(error);
+      throw new HttpException('알림 읽음 처리에 실패했습니다.', 500);
     }
   }
 }

@@ -476,7 +476,6 @@ export class AuthService {
       throw new HttpException('서버요청 에러!', 500);
     }
   }
-  
 
   // 홈화면 이미지 업로드
   async uploadHomeImage(filesData: Express.Multer.File[], req: any) {

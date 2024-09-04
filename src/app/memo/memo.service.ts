@@ -2,8 +2,9 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemoCategory } from 'src/entities/memo-category.entity';
 import { Memo } from 'src/entities/memo.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
+import { responseObj } from 'src/util/responseObj';
 
 @Injectable()
 export class MemoService {
@@ -13,6 +14,7 @@ export class MemoService {
     @InjectRepository(Memo)
     private readonly memoRepository: Repository<Memo>,
     private readonly alarmHistoryService: AlarmHistoryService,
+    private readonly dataSource: DataSource, // DataSource를 주입받습니다.
   ) {}
 
   async getMemoList(req) {
@@ -35,6 +37,9 @@ export class MemoService {
   }
 
   async createMemoCategory(req: any) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       const { coupleId, id: userId } = req.user;
 
@@ -47,7 +52,9 @@ export class MemoService {
       });
 
       // 알람 히스토리 저장
-      await this.alarmHistoryService.addAlarmHistory(
+      const {
+        data: { id },
+      } = await this.alarmHistoryService.addAlarmHistory(
         memoCategory.id,
         userId,
         coupleId,
@@ -56,25 +63,43 @@ export class MemoService {
         null,
         req.body.title,
       );
+      Logger.log('id', id);
 
-      return { success: true };
+      // 본인 알람은 자동으로 읽음 처리
+      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
+
+      await queryRunner.commitTransaction();
+      return responseObj.success();
     } catch (error) {
-      Logger.error(error);
+      await queryRunner.rollbackTransaction();
       throw new HttpException('저장에 실패했습니다.', 500);
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async createMemo(req: any) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      Logger.log(req.body);
       const { coupleId, id: userId } = req.user;
 
-      const memo = await this.memoRepository.save({
+      const memo = await queryRunner.manager.save(Memo, {
         memoCategoryId: req.body.categoryId,
         userId: userId,
         coupleId: coupleId,
         memo: req.body.memo,
       });
+
+      Logger.log('memo', {
+        memoCategoryId: req.body.categoryId,
+        userId: userId,
+        coupleId: coupleId,
+        memo: req.body.memo,
+      });
+
+      Logger.log('memo', memo);
 
       // 메모 카테고리 이름 가져오기
       const { title: categoryName } = await this.memoCategoryRepository.findOne(
@@ -84,7 +109,9 @@ export class MemoService {
       );
 
       // 알람 히스토리 저장
-      await this.alarmHistoryService.addAlarmHistory(
+      const {
+        data: { id },
+      } = await this.alarmHistoryService.addAlarmHistory(
         memo.id,
         userId,
         coupleId,
@@ -94,11 +121,16 @@ export class MemoService {
         categoryName, // 카테고리 이름
         req.body.memo, // 메모 내용
       );
+      // 본인 알람은 자동으로 읽음 처리
+      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
-      return { success: true };
+      await queryRunner.commitTransaction();
+      return responseObj.success();
     } catch (error) {
-      Logger.error(error);
+      await queryRunner.rollbackTransaction();
       throw new HttpException('저장에 실패했습니다.', 500);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -111,7 +143,7 @@ export class MemoService {
       return { success: false };
     }
 
-    return { success: true };
+    return responseObj.success();
   }
 
   async getCurrentMemo(id: string, req: any) {

@@ -43,7 +43,9 @@ export class AlbumBoardService {
       // await queryManager.save(Files, file);
 
       // 알람 히스토리 저장
-      await this.alarmHistoryService.addAlarmHistory(
+      const {
+        data: { id },
+      } = await this.alarmHistoryService.addAlarmHistory(
         albumBoard.id,
         userId,
         coupleId,
@@ -52,6 +54,8 @@ export class AlbumBoardService {
         filesData.length,
         post.title,
       );
+      // 본인 알람은 자동으로 읽음 처리
+      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
       await queryRunner.commitTransaction();
       return { success: true };

@@ -4,8 +4,14 @@ import { Calendar } from 'src/entities/calendar.entity';
 import { CommonCode } from 'src/entities/common_code.entity';
 import { WorkScheduleFiles } from 'src/entities/work-schedule-files.entity';
 import { WorkSchedule } from 'src/entities/work-schedule.entity';
-import { AnyBulkWriteOperation, EntityManager, Repository } from 'typeorm';
+import {
+  AnyBulkWriteOperation,
+  DataSource,
+  EntityManager,
+  Repository,
+} from 'typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
+import { responseObj } from 'src/util/responseObj';
 
 @Injectable()
 export class CalendarService {
@@ -17,19 +23,22 @@ export class CalendarService {
     @InjectRepository(WorkSchedule)
     private readonly workScheduleRepository: Repository<WorkSchedule>,
     private readonly alarmHistoryService: AlarmHistoryService,
+    private readonly dataSource: DataSource, // DataSource를 주입받습니다.
   ) {}
 
   async create(req: any, queryManager: EntityManager) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       const { coupleId, id: userId } = req.user;
 
-      const calendar = await this.calendarRepository.save({
+      const calendar = await queryRunner.manager.save(Calendar, {
         ...req.body,
         userId: userId,
         coupleId: coupleId,
       });
 
-      console.log(req.body);
       console.log(
         calendar.id,
         userId,
@@ -41,7 +50,9 @@ export class CalendarService {
         req.body.startDate, // sub_content - 시작날짜
       );
       // 알람 히스토리 저장
-      await this.alarmHistoryService.addAlarmHistory(
+      const {
+        data: { id },
+      } = await this.alarmHistoryService.addAlarmHistory(
         calendar.id,
         userId,
         coupleId,
@@ -52,10 +63,17 @@ export class CalendarService {
         req.body.startDate, // sub_content - 시작날짜
       );
 
-      return { success: true };
+      // 본인 알람은 자동으로 읽음 처리
+      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
+
+      await queryRunner.commitTransaction();
+      return responseObj.success();
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -139,8 +157,11 @@ export class CalendarService {
   }
 
   async deleteCalendarItem(req: any, calendarId: string) {
-    const { coupleId, id: userId } = req.user;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
+      const { coupleId, id: userId } = req.user;
       const calendar = await this.calendarRepository.update(
         {
           id: calendarId,
@@ -150,7 +171,9 @@ export class CalendarService {
       );
 
       // 알람 히스토리 저장
-      await this.alarmHistoryService.addAlarmHistory(
+      const {
+        data: { id },
+      } = await this.alarmHistoryService.addAlarmHistory(
         calendarId,
         userId,
         coupleId,
@@ -159,10 +182,16 @@ export class CalendarService {
         null,
         calendar.raw.changedRows[0].title,
       );
+      // 본인 알람은 자동으로 읽음 처리
+      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
-      return { success: true, message: '삭제 성공' };
+      await queryRunner.commitTransaction();
+      return responseObj.success(null, '삭제 성공');
     } catch (e) {
-      return { success: false, message: '삭제 실패' };
+      await queryRunner.rollbackTransaction();
+      return responseObj.fail('삭제 실패');
+    } finally {
+      await queryRunner.release();
     }
   }
 }
