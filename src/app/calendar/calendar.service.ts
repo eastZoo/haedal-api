@@ -33,22 +33,13 @@ export class CalendarService {
     try {
       const { coupleId, id: userId } = req.user;
 
+      console.log(req);
       const calendar = await queryRunner.manager.save(Calendar, {
         ...req.body,
         userId: userId,
         coupleId: coupleId,
       });
 
-      console.log(
-        calendar.id,
-        userId,
-        coupleId,
-        'calendar',
-        'create',
-        0,
-        req.body.title,
-        req.body.startDate, // sub_content - 시작날짜
-      );
       // 알람 히스토리 저장
       const {
         data: { id },
@@ -65,7 +56,6 @@ export class CalendarService {
 
       // 본인 알람은 자동으로 읽음 처리
       await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
-
       await queryRunner.commitTransaction();
       return responseObj.success();
     } catch (error) {
@@ -79,12 +69,14 @@ export class CalendarService {
 
   async getScheduleList(req) {
     const { coupleId } = req.user;
-
-    return this.calendarRepository
+    const result = await this.calendarRepository
       .createQueryBuilder('calendar')
       .where('calendar.couple_id = :coupleId', { coupleId })
       .andWhere('calendar.isDeleted = false')
       .getMany();
+
+    console.log(result);
+    return responseObj.success(result);
   }
 
   async getColorList() {
@@ -189,7 +181,7 @@ export class CalendarService {
       return responseObj.success(null, '삭제 성공');
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      return responseObj.fail('삭제 실패');
+      return responseObj.error('삭제 실패');
     } finally {
       await queryRunner.release();
     }

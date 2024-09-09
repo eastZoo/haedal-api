@@ -29,8 +29,12 @@ dotenv.config();
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-      validate,
+      envFilePath: [
+        `.env.${process.env.NODE_ENV}`,
+        `.env`,
+        '.env.development',
+        '.env.production',
+      ],
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -40,6 +44,7 @@ dotenv.config();
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [User, __dirname + '/entities/*.entity{.ts,.js}'],
+      migrationsRun: true,
       synchronize: true,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,

@@ -15,6 +15,7 @@ import { socialUserDto } from './dto/social-user.dto';
 import { calculateAge } from 'src/util/calculateAge';
 import { ReqUserDto } from './dto/req-user.dto';
 import { maskEmail } from 'src/util/maskEmail';
+import { responseObj } from 'src/util/responseObj';
 
 @Injectable()
 export class AuthService {
@@ -55,14 +56,11 @@ export class AuthService {
         const refreshToken = this.createRefreshToken(payload);
 
         await queryRunner.commitTransaction();
-        await queryRunner.release();
-
-        return {
-          success: true,
+        return responseObj.success({
           accessToken,
           refreshToken,
           connectState: user.connectState,
-        };
+        });
       } else {
         Logger.log('소설 회원가입 시작!!');
         // 소셜 로그인 정보가 없다면 회원가입
@@ -90,25 +88,18 @@ export class AuthService {
         const refreshToken = this.createRefreshToken(payload);
 
         await queryRunner.commitTransaction();
-        await queryRunner.release();
 
-        console.log({
-          success: true,
+        return responseObj.success({
           accessToken,
           refreshToken,
           connectState: user.connectState,
         });
-        return {
-          success: true,
-          accessToken,
-          refreshToken,
-          connectState: user.connectState,
-        };
       }
     } catch (e) {
       await queryRunner.rollbackTransaction();
+      return responseObj.error(e.response);
+    } finally {
       await queryRunner.release();
-      return { success: false, msg: e.response };
     }
   }
 
@@ -147,18 +138,17 @@ export class AuthService {
       const refreshToken = this.createRefreshToken(payload);
 
       await queryRunner.commitTransaction();
-      await queryRunner.release();
 
-      return {
-        success: true,
+      return responseObj.success({
         accessToken,
         refreshToken,
         connectState: user.connectState,
-      };
+      });
     } catch (e) {
       await queryRunner.rollbackTransaction();
+      return responseObj.error(e.response);
+    } finally {
       await queryRunner.release();
-      return { success: false, msg: e.response };
     }
   }
 
@@ -186,15 +176,15 @@ export class AuthService {
       const refreshToken = this.createRefreshToken(payload);
 
       await queryRunner.commitTransaction();
-      return {
-        success: true,
+
+      return responseObj.success({
         accessToken,
         refreshToken,
         connectState: user.connectState,
-      };
+      });
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      return { success: false, msg: e.response };
+      return responseObj.error(e.response);
     } finally {
       await queryRunner.release();
     }
@@ -212,9 +202,9 @@ export class AuthService {
         myId: userId.id,
       });
 
-      return { success: true, msg: '회원가입 삭제 완료' };
+      return responseObj.success('회원가입 취소 완료');
     } catch (e: any) {
-      return { success: false, msg: e.response };
+      return responseObj.error(e.response);
     }
   }
 
@@ -224,10 +214,12 @@ export class AuthService {
       const user = await this.userRepository.findOne({
         where: { userEmail },
       });
+
+      console.log('user : ', user);
       if (user === null) {
-        return false;
+        return responseObj.success(false);
       } else {
-        return true;
+        return responseObj.success(true);
       }
     } catch (e: any) {
       throw new HttpException(e.response, 500);
@@ -241,7 +233,8 @@ export class AuthService {
         where: { userEmail },
       });
       console.log(user);
-      return user === null ? false : user.connectState;
+
+      return responseObj.success(user === null ? false : user.connectState);
     } catch (e: any) {
       throw new HttpException(e.response, 500);
     }
@@ -253,8 +246,8 @@ export class AuthService {
       const code = await this.coupleRepository.findOne({
         where: { myId: id },
       });
-      console.log('code   :', code);
-      return code;
+
+      return responseObj.success(code);
     } catch (e: any) {
       throw new HttpException(e.response, 500);
     }
@@ -311,9 +304,6 @@ export class AuthService {
         where: { code: code },
       });
 
-      console.log('couple  : ', couple);
-      console.log('My id  : ', id);
-
       if (couple !== null) {
         // 커플 매칭 테이블 연결
         await this.coupleRepository.update(
@@ -333,15 +323,13 @@ export class AuthService {
           { id: couple.myId },
           { connectState: 2, coupleId: couple.id },
         );
-        return {
-          success: true,
-          connectState: 2,
-        };
+
+        return responseObj.success({ connectState: 2 });
       }
       // 코드가 존재 하지 않을 때
-      return { success: false, msg: '입력하신 코드가 존재하지 않습니다.' };
+      return responseObj.error('입력하신 코드가 존재하지 않습니다.');
     } catch (error) {
-      return { success: false, msg: error.message };
+      return responseObj.error('입력하신 코드가 존재하지 않습니다.');
     }
   }
 
@@ -365,9 +353,9 @@ export class AuthService {
         { firstDay: infoDto.firstDay },
       );
 
-      return { success: true, connectState: '3' };
+      return responseObj.success({ connectState: 3 });
     } catch (e) {
-      return { success: false, msg: e.response };
+      return responseObj.error(e.response);
     }
   }
 
@@ -412,7 +400,7 @@ export class AuthService {
       select: ['id', 'firstDay', 'homeProfileUrl'],
       where: { id: coupleId },
     });
-    return { me, partner, coupleData };
+    return responseObj.success({ me, partner, coupleData });
   }
 
   /** 소셜 유저 존재 여부 확인 */
@@ -487,7 +475,7 @@ export class AuthService {
         },
       );
 
-      return { success: true };
+      return responseObj.success();
     } catch (e) {
       throw new HttpException('서버요청 에러!', 500);
     }
@@ -543,9 +531,9 @@ export class AuthService {
         { id: userId },
         { emotion: req.body.emotion },
       );
-      return { success: true };
+      return responseObj.success();
     } catch (e) {
-      return { success: false, msg: e.response };
+      return responseObj.error(e.response);
     }
   }
 
@@ -575,9 +563,8 @@ export class AuthService {
       }
       const maskUserEmail = await maskEmail(user.userEmail);
 
-      return { success: true, userEmail: maskUserEmail };
+      return responseObj.success({ userEmail: maskUserEmail });
     } catch (error) {
-      console.log(error);
       throw new HttpException('존재하지 않는 회원입니다.', 500);
     }
   }

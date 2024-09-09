@@ -23,7 +23,7 @@ export const responseObj = {
       data,
     };
   },
-  fail: (message: string = 'fail') => {
+  error: (message: string = 'fail') => {
     return {
       success: false,
       message,

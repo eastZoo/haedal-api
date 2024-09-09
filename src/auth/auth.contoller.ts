@@ -156,9 +156,7 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   @Get('/profile')
   async getUserProfile(@Request() req: any) {
-    const result = await this.authService.getUserProfile(req);
-    console.log(result);
-    return result;
+    return await this.authService.getUserProfile(req);
   }
 
   // 배경화면 이미지 업로드
@@ -171,9 +169,7 @@ export class AuthController {
     filesData: Array<Express.Multer.File>,
     @Req() req: Request,
   ) {
-    const result = await this.authService.uploadHomeImage(filesData, req);
-    console.log(result);
-    return result;
+    return await this.authService.uploadHomeImage(filesData, req);
   }
 
   // 프로필 이미지 업로드

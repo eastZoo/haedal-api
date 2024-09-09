@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AlbumBoard } from 'src/entities/album-board.entity';
+import { responseObj } from 'src/util/responseObj';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class LocationService {
   ) {}
 
   async userLocation(coupleId: string) {
-    return this.albumBoardRepository
+    const result = this.albumBoardRepository
       .createQueryBuilder('album_board')
       .leftJoinAndSelect('album_board.user', 'user')
       .leftJoinAndSelect('album_board.files', 'files')
@@ -20,5 +21,7 @@ export class LocationService {
       .andWhere('album_board.lng != 0')
       .orderBy('album_board.createdAt', 'ASC')
       .getMany();
+
+    return responseObj.success(result);
   }
 }

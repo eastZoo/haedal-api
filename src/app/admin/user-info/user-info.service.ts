@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
+import { responseObj } from 'src/util/responseObj';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -19,9 +20,10 @@ export class UserInfoService {
         order: { connectState: 'DESC' },
       });
 
-      return { success: true, data: result };
+      return responseObj.success(result);
+      // return { success: true, data: result };
     } catch (e) {
-      return { success: false, msg: e.response };
+      return responseObj.error(e.message);
     }
   }
 }

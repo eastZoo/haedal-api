@@ -33,8 +33,7 @@ export class AlbumBoardController {
   @UseInterceptors(TransactionInterceptor)
   @Bind(UploadedFiles())
   async create(filesData: Array<Express.Multer.File>, @Req() req: Request) {
-    const result = await this.albumBoardService.create(filesData, req);
-    return;
+    return await this.albumBoardService.create(filesData, req);
   }
 
   /** 스토리 */

@@ -33,7 +33,7 @@ export class MemoService {
       clear: obj.memos.filter((memo) => memo.isDone).length,
     }));
 
-    return updatedData;
+    return responseObj.success(updatedData);
   }
 
   async createMemoCategory(req: any) {
@@ -135,15 +135,19 @@ export class MemoService {
   }
 
   async updateMemoItemCheck(req: any) {
-    const memo = await this.memoRepository.update(
-      { id: req.body.id },
-      { isDone: req.body.isDone },
-    );
-    if (memo.affected === 0) {
-      return { success: false };
-    }
+    try {
+      const memo = await this.memoRepository.update(
+        { id: req.body.id },
+        { isDone: req.body.isDone },
+      );
+      if (memo.affected === 0) {
+        return responseObj.success();
+      }
 
-    return responseObj.success();
+      return responseObj.success();
+    } catch (e: any) {
+      return responseObj.error(e.message);
+    }
   }
 
   async getCurrentMemo(id: string, req: any) {
@@ -157,6 +161,6 @@ export class MemoService {
       .leftJoinAndSelect('memo_category.memos', 'memo')
       .getMany();
 
-    return { currentMemo: data };
+    return responseObj.success({ currentMemo: data });
   }
 }

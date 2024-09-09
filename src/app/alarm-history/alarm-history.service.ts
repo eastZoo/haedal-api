@@ -46,10 +46,9 @@ export class AlarmHistoryService {
   }
 
   async getAlarmHistoryList(req: any) {
-    const { coupleId, id: userId } = req.user;
+    Logger.log('알람 히스토리 조회');
 
-    console.log('userId  @@@@@@@@@@@:', userId);
-    console.log('coupleId  @@@@@@@@@@@:', coupleId);
+    const { coupleId, id: userId } = req.user;
     try {
       const alarmHistoryList = await this.alarmHistoryRepository
         .createQueryBuilder('alarmHistory')
@@ -67,7 +66,7 @@ export class AlarmHistoryService {
         .orderBy('alarmHistory.createdAt', 'DESC')
         .getMany();
 
-      // Transform the result
+      // 데이터 변환
       const transformedResult = alarmHistoryList.map((alarm) => {
         const isRead =
           alarm.alarmReadStatuses.length > 0
@@ -79,10 +78,11 @@ export class AlarmHistoryService {
         };
       });
 
-      return { success: true, alarmHistoryList: transformedResult };
+      return responseObj.success(transformedResult);
+      // return { success: true, alarmHistoryList: transformedResult };
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('알람 히스토리 조회에 실패했습니다.', 500);
+      return responseObj.error('알람 히스토리 조회에 실패했습니다');
     }
   }
 
@@ -120,6 +120,8 @@ export class AlarmHistoryService {
       if (newAlarmReadStatuses.length > 0) {
         await this.alarmReadStatusRepository.save(newAlarmReadStatuses);
       }
+
+      return
     } catch (error) {
       Logger.error(error);
       throw new HttpException('알람 히스토리 읽음 처리에 실패했습니다.', 500);
@@ -143,10 +145,10 @@ export class AlarmHistoryService {
         )
         .getCount();
 
-      return { success: true, unreadAlarmCount };
+      return responseObj.success(unreadAlarmCount);
     } catch (error) {
       Logger.error(error);
-      throw new HttpException('안 읽은 알람 개수 조회에 실패했습니다.', 500);
+      return responseObj.error('안 읽은 알람 개수 조회에 실패했습니다.');
     }
   }
 

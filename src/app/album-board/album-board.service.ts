@@ -4,6 +4,8 @@ import { AlbumBoard } from 'src/entities/album-board.entity';
 import { Files } from 'src/entities/files.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
+import { response } from 'express';
+import { responseObj } from 'src/util/responseObj';
 
 @Injectable()
 export class AlbumBoardService {
@@ -58,7 +60,7 @@ export class AlbumBoardService {
       await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
       await queryRunner.commitTransaction();
-      return { success: true };
+      return responseObj.success();
     } catch (error) {
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
@@ -93,16 +95,8 @@ export class AlbumBoardService {
       .take(LIMIT) // Se
       .getMany();
 
-    return { appendData: data, total: total.length };
-
-    // const { coupleId } = req.user;
-    // const result = await this.albumBoardRepository.find({
-    //   where: { coupleId },
-    //   relations: ['user', 'files'],
-    //   order: { createdAt: 'DESC' },
-    // });
-
-    // return result;
+    return responseObj.success({ appendData: data, total: total.length });
+    // return { appendData: data, total: total.length };
   }
 
   async getCategoryAlbumBoardList(req: any, offset: string, category: string) {
@@ -130,7 +124,7 @@ export class AlbumBoardService {
       .take(LIMIT) // Se
       .getMany();
 
-    return { appendData: data, total: total.length };
+    return responseObj.success({ appendData: data, total: total.length });
   }
 
   async deleteAlbumBoard(
