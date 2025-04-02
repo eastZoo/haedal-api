@@ -16,6 +16,7 @@ import { calculateAge } from 'src/util/calculateAge';
 import { ReqUserDto } from './dto/req-user.dto';
 import { maskEmail } from 'src/util/maskEmail';
 import { responseObj } from 'src/util/responseObj';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -232,9 +233,13 @@ export class AuthService {
       const user = await this.userRepository.findOne({
         where: { userEmail },
       });
-      console.log(user);
+      Logger.log('연결 상태 조회');
 
-      return responseObj.success(user === null ? false : user.connectState);
+      console.log('user : ', user);
+      if (!user) {
+        return responseObj.error('사용자를 찾을 수 없습니다.');
+      }
+      return responseObj.success(user.connectState);
     } catch (e: any) {
       throw new HttpException(e.response, 500);
     }

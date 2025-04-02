@@ -44,13 +44,13 @@ dotenv.config();
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [User, __dirname + '/entities/*.entity{.ts,.js}'],
-      migrationsRun: true,
+      migrationsRun: false,
       synchronize: true,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(__dirname, '..', '..', 'uploads'),
     }),
     MulterModule.register({
       dest: './uploads',

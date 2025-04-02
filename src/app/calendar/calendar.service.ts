@@ -80,7 +80,14 @@ export class CalendarService {
   }
 
   async getColorList() {
-    return this.CommonCodeRepository.find({ where: { codeType: 'LC01' } });
+    try {
+      const result = await this.CommonCodeRepository.find({
+        where: { codeType: 'LC01' },
+      });
+      return responseObj.success(result);
+    } catch (error) {
+      return responseObj.error('캘린더 라벨 컬러 조회에 실패했습니다.');
+    }
   }
 
   async getCurrentWorkTableUrl(month: string, req: any) {

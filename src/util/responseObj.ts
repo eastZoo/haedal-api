@@ -23,10 +23,11 @@ export const responseObj = {
       data,
     };
   },
-  error: (message: string = 'fail') => {
+  error: (message: string = 'fail', code: number = 500) => {
     return {
       success: false,
       message,
+      code: code,
     };
   },
 };
