@@ -252,6 +252,22 @@ export class AuthService {
         where: { myId: id },
       });
 
+      // 마지막 업데이트 시간으로부터 24시간이 지났는지 확인
+      const lastUpdateTime = new Date(code.updatedAt).getTime();
+      const currentTime = new Date().getTime();
+      const timeDiff = currentTime - lastUpdateTime;
+      const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+      // 24시간이 지났다면 새로운 코드 생성
+      if (hoursDiff >= 24) {
+        await this.generateUniqueInviteCode(code.id);
+        // 새로운 코드로 갱신된 정보 조회
+        const newCode = await this.coupleRepository.findOne({
+          where: { myId: id },
+        });
+        return responseObj.success(newCode);
+      }
+
       return responseObj.success(code);
     } catch (e: any) {
       throw new HttpException(e.response, 500);
