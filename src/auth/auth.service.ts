@@ -258,6 +258,8 @@ export class AuthService {
       const timeDiff = currentTime - lastUpdateTime;
       const hoursDiff = timeDiff / (1000 * 60 * 60);
 
+      Logger.log('hoursDiff : ', hoursDiff);
+
       // 24시간이 지났다면 새로운 코드 생성
       if (hoursDiff >= 24) {
         await this.generateUniqueInviteCode(code.id);
@@ -281,8 +283,11 @@ export class AuthService {
         where: { myId: id },
       });
       await this.generateUniqueInviteCode(code.id);
-
-      return code;
+      // 새로운 코드로 갱신된 정보 조회
+      const newCode = await this.coupleRepository.findOne({
+        where: { myId: id },
+      });
+      return responseObj.success(newCode);
     } catch (e: any) {
       throw new HttpException(e.response, 500);
     }
@@ -290,18 +295,26 @@ export class AuthService {
 
   // 초대코드 디비와 겹치지않게 생성
   async generateUniqueInviteCode(id: string) {
-    while (true) {
-      const randomCode = Math.floor(Math.random() * 89999999) + 10000000;
-      const code = await this.coupleRepository.findOne({
-        where: { code: randomCode },
-      });
+    try {
+      let isUnique = false;
+      let randomCode;
 
-      if (code === null) {
-        const existingRecord = await this.coupleRepository.update(
-          { id: id },
-          { code: randomCode },
-        );
+      while (!isUnique) {
+        randomCode = Math.floor(Math.random() * 89999999) + 10000000;
+        const existingCode = await this.coupleRepository.findOne({
+          where: { code: randomCode },
+        });
+
+        if (!existingCode) {
+          isUnique = true;
+        }
       }
+
+      await this.coupleRepository.update({ id: id }, { code: randomCode });
+
+      return randomCode;
+    } catch (e) {
+      throw new HttpException('초대 코드 생성에 실패했습니다.', 500);
     }
   }
 

@@ -1,4 +1,9 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Calendar } from 'src/entities/calendar.entity';
 import { CommonCode } from 'src/entities/common_code.entity';
@@ -161,7 +166,21 @@ export class CalendarService {
     await queryRunner.startTransaction();
     try {
       const { coupleId, id: userId } = req.user;
-      const calendar = await this.calendarRepository.update(
+
+      // 삭제 전 캘린더 항목 조회
+      const calendarItem = await this.calendarRepository.findOne({
+        where: {
+          id: calendarId,
+          coupleId: coupleId,
+        },
+      });
+
+      if (!calendarItem) {
+        throw new NotFoundException('캘린더 항목을 찾을 수 없습니다.');
+      }
+
+      // 삭제 처리
+      await this.calendarRepository.update(
         {
           id: calendarId,
           coupleId: coupleId,
@@ -169,7 +188,7 @@ export class CalendarService {
         { isDeleted: true },
       );
 
-      // 알람 히스토리 저장
+      // 알람 히스토리 저장 (수정된 부분)
       const {
         data: { id },
       } = await this.alarmHistoryService.addAlarmHistory(
@@ -179,14 +198,16 @@ export class CalendarService {
         'albumboard',
         'delete',
         null,
-        calendar.raw.changedRows[0].title,
+        calendarItem.title, // 미리 조회한 데이터의 title 사용
       );
+
       // 본인 알람은 자동으로 읽음 처리
       await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
       await queryRunner.commitTransaction();
       return responseObj.success(null, '삭제 성공');
     } catch (e) {
+      Logger.error(e);
       await queryRunner.rollbackTransaction();
       return responseObj.error('삭제 실패');
     } finally {
