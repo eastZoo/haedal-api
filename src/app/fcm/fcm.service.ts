@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FcmToken } from 'src/entities/fcm.entity';
 import * as admin from 'firebase-admin';
 import { PushParamsDto } from './dto/push-params.dto';
+import { responseObj } from 'src/util/responseObj';
 
 @Injectable()
 export class FcmService {
@@ -13,13 +14,25 @@ export class FcmService {
     @InjectRepository(FcmToken)
     private readonly fcmTokenRepository: Repository<FcmToken>,
   ) {
-    const serviceAccount = require('../../../haedal-project-firebase-adminsdk.json');
+    const serviceAccount = {
+      type: process.env.FIREBASE_TYPE,
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: process.env.FIREBASE_AUTH_URI,
+      token_uri: process.env.FIREBASE_TOKEN_URI,
+      auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
+      client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
+    };
     if (!admin.apps.length) {
       admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+        credential: admin.credential.cert(
+          serviceAccount as admin.ServiceAccount,
+        ),
       });
     }
-
     this.fcm = admin.messaging();
   }
 
@@ -65,63 +78,29 @@ export class FcmService {
     }
   }
 
-  async saveFcmToken(body: any) {
+  async saveFcmToken(req: any) {
     try {
-      // 기본 유효성 검사
-      if (!body) {
-        return { success: false, message: '요청 데이터가 없습니다.' };
-      }
+      const { userId } = req.user;
+      const { fcmToken } = req.body;
 
-      const { userId, userType, fcmToken } = body;
-
-      if (!userId || !userType || !fcmToken) {
-        return { success: false, message: '필수 파라미터가 누락되었습니다.' };
-      }
-
-      if (userType !== 'student' && userType !== 'guardian') {
-        return { success: false, message: '잘못된 사용자 타입입니다.' };
-      }
-
-      // fcmToken으로 기존 데이터 조회
-      const existingTokenData = await this.fcmTokenRepository.findOne({
-        where: { fcmToken },
+      Logger.log('fcm save userId', userId);
+      Logger.log('fcm save fcmToken', fcmToken);
+      const existing = await this.fcmTokenRepository.findOne({
+        where: { userId, fcmToken },
       });
 
-      // Case 1: fcmToken이 이미 존재하는 경우
-      if (existingTokenData) {
-        // 동일한 사용자의 토큰인 경우
-        if (
-          existingTokenData.userId === userId &&
-          existingTokenData.userType === userType
-        ) {
-          return { success: true, message: '이미 저장되어 있는 토큰입니다.' };
-        }
-
-        // 다른 사용자의 토큰인 경우 -> 업데이트
-        await this.fcmTokenRepository.update(existingTokenData.id, {
+      if (!existing) {
+        const tokenEntity = this.fcmTokenRepository.create({
           userId,
-          userType,
+          fcmToken,
         });
-        return {
-          success: true,
-          message: 'FCM 토큰 정보가 업데이트되었습니다.',
-        };
+        await this.fcmTokenRepository.save(tokenEntity);
       }
 
-      // Case 2: 새로운 fcmToken인 경우
-      const newFcmToken = this.fcmTokenRepository.create({
-        userId,
-        userType,
-        fcmToken,
-      });
-      await this.fcmTokenRepository.save(newFcmToken);
-      return { success: true, message: 'FCM 토큰이 새로 저장되었습니다.' };
+      return responseObj.success('FCM 토큰이 새로 저장되었습니다.');
     } catch (error) {
       Logger.error('FCM 토큰 저장 중 오류 발생:', error);
-      return {
-        success: false,
-        message: 'FCM 토큰 저장 중 오류가 발생했습니다.',
-      };
+      return responseObj.error('FCM 토큰 저장 중 오류가 발생했습니다.', error);
     }
   }
 }

@@ -1,8 +1,9 @@
-import { Body, Controller, Post, Request } from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { FcmService } from './fcm.service';
 import { ApiResponse } from '@nestjs/swagger';
 import { ApiOperation } from '@nestjs/swagger';
 import { PushParamsDto } from './dto/push-params.dto';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 
 @Controller('fcm')
 export class FcmController {
@@ -13,10 +14,10 @@ export class FcmController {
     status: 200,
     description: 'FCM 토큰 저장 성공',
   })
-  @Post('save-fcm-token')
+  @UseGuards(AccessTokenGuard)
+  @Post('fcm-token')
   async saveFcmToken(@Request() req: any) {
-    console.log(req.body);
-    return this.fcmService.saveFcmToken(req.body);
+    return this.fcmService.saveFcmToken(req);
   }
 
   @ApiOperation({ summary: '푸시 알림 전송' })

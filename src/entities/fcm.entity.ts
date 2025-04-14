@@ -11,12 +11,6 @@ export class FcmToken {
   @Column()
   fcmToken: string;
 
-  @Column()
-  userType: string;
-
-  @Column({ nullable: true })
-  deviceType: string;
-
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
