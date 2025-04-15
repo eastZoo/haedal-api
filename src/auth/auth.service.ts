@@ -17,6 +17,7 @@ import { ReqUserDto } from './dto/req-user.dto';
 import { maskEmail } from 'src/util/maskEmail';
 import { responseObj } from 'src/util/responseObj';
 import { log } from 'console';
+import { FcmToken } from 'src/entities/fcm.entity';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +37,7 @@ export class AuthService {
     await queryRunner.startTransaction();
 
     try {
-      const { userEmail, provider, providerUserId } = socialUser;
+      const { userEmail, provider, providerUserId, fcmToken } = socialUser;
 
       // 유저 정보가 있는지 확인
       const user = await this.validateSocialUser({
@@ -55,6 +56,21 @@ export class AuthService {
         };
         const accessToken = this.createAccessToken(payload);
         const refreshToken = this.createRefreshToken(payload);
+
+        // FCM 토큰 저장 로직을 트랜잭션 내부에서 직접 처리
+        if (fcmToken) {
+          const existing = await queryRunner.manager.findOne(FcmToken, {
+            where: { userId: user.id, fcmToken },
+          });
+
+          if (!existing) {
+            const tokenEntity = queryRunner.manager.create(FcmToken, {
+              userId: user.id,
+              fcmToken,
+            });
+            await queryRunner.manager.save(FcmToken, tokenEntity);
+          }
+        }
 
         await queryRunner.commitTransaction();
         return responseObj.success({
@@ -122,7 +138,7 @@ export class AuthService {
     await queryRunner.startTransaction();
 
     try {
-      const { userEmail, password } = siginInDto;
+      const { userEmail, password, fcmToken } = siginInDto;
       const user = await this.validateUser({ userEmail, password });
 
       if (!user) {
@@ -131,12 +147,28 @@ export class AuthService {
           msg: '아이디 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.',
         };
       }
+
       const payload = {
         userEmail: user.userEmail,
         id: user.id,
       };
       const accessToken = this.createAccessToken(payload);
       const refreshToken = this.createRefreshToken(payload);
+
+      // FCM 토큰 저장 로직을 트랜잭션 내부에서 직접 처리
+      if (fcmToken) {
+        const existing = await queryRunner.manager.findOne(FcmToken, {
+          where: { userId: user.id, fcmToken },
+        });
+
+        if (!existing) {
+          const tokenEntity = queryRunner.manager.create(FcmToken, {
+            userId: user.id,
+            fcmToken,
+          });
+          await queryRunner.manager.save(FcmToken, tokenEntity);
+        }
+      }
 
       await queryRunner.commitTransaction();
 

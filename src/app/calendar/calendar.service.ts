@@ -17,6 +17,12 @@ import {
 } from 'typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
 import { responseObj } from 'src/util/responseObj';
+import { AlarmHistory } from 'src/entities/alarm-history.entity';
+import { AlarmReadStatus } from 'src/entities/alarm_read_status.entity';
+import { User } from 'src/entities/user.entity';
+import { FcmService } from '../fcm/fcm.service';
+import { Not } from 'typeorm';
+import { FcmToken } from 'src/entities/fcm.entity';
 
 @Injectable()
 export class CalendarService {
@@ -27,41 +33,74 @@ export class CalendarService {
     private readonly CommonCodeRepository: Repository<CommonCode>,
     @InjectRepository(WorkSchedule)
     private readonly workScheduleRepository: Repository<WorkSchedule>,
+    @InjectRepository(FcmToken)
+    private readonly fcmTokenRepository: Repository<FcmToken>,
     private readonly alarmHistoryService: AlarmHistoryService,
-    private readonly dataSource: DataSource, // DataSource를 주입받습니다.
+    private readonly fcmService: FcmService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(req: any, queryManager: EntityManager) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
       const { coupleId, id: userId } = req.user;
 
-      console.log(req);
+      // Calendar 저장
       const calendar = await queryRunner.manager.save(Calendar, {
         ...req.body,
         userId: userId,
         coupleId: coupleId,
       });
 
-      // 알람 히스토리 저장
-      const {
-        data: { id },
-      } = await this.alarmHistoryService.addAlarmHistory(
-        calendar.id,
-        userId,
-        coupleId,
-        'calendar',
-        'create',
-        null,
-        req.body.title,
-        req.body.startDate, // sub_content - 시작날짜
-      );
+      // AlarmHistory 저장
+      const alarmHistory = await queryRunner.manager.save(AlarmHistory, {
+        alarmId: calendar.id,
+        userId: userId,
+        coupleId: coupleId,
+        type: 'calendar',
+        crud: 'create',
+        content: req.body.title,
+        sub_content: req.body.startDate,
+      });
 
-      // 본인 알람은 자동으로 읽음 처리
-      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
+      // 본인 알람 읽음 처리
+      await queryRunner.manager.save(AlarmReadStatus, {
+        alarmHistoryId: alarmHistory.id,
+        userId: userId,
+        isRead: true,
+      });
+
+      // 상대방 찾기
+      const partner = await queryRunner.manager.findOne(User, {
+        where: {
+          coupleId: coupleId,
+          id: Not(userId), // 자신이 아닌 상대방
+        },
+      });
+
       await queryRunner.commitTransaction();
+
+      // 트랜잭션 완료 후 푸시 알림 전송
+      if (partner) {
+        // 상대방의 FCM 토큰 조회
+        const partnerFcmTokens = await this.fcmTokenRepository.find({
+          where: { userId: partner.id },
+        });
+
+        // 각 토큰에 대해 푸시 알림 전송
+        for (const tokenData of partnerFcmTokens) {
+          await this.fcmService.sendPushNotification({
+            fcmToken:
+              'eozlIS3nz0JLtQJkUC-HGu:APA91bFMbt6N1RP0V5gsDrkbB5dLeQeaEVx5m0-juoR_9tIbKQj2aA_yQqTVF3-tFoEA6eIIKPVpgmZz1Ja6aQ1vs9ot1EkNOXMz43PZFgGKhw0aDGbF2sc',
+            title: '새로운 일정이 등록되었습니다',
+            body: `${req.body.title} (${req.body.startDate})`,
+          });
+        }
+      }
+
       return responseObj.success();
     } catch (error) {
       await queryRunner.rollbackTransaction();

@@ -8,9 +8,9 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Couple } from 'src/entities/couple.entity';
-
+import { FcmToken } from 'src/entities/fcm.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Couple])],
+  imports: [TypeOrmModule.forFeature([User, Couple, FcmToken])],
   providers: [
     LocalStrategy,
     JwtService,

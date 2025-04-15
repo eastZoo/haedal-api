@@ -34,6 +34,7 @@ export class FcmService {
       });
     }
     this.fcm = admin.messaging();
+    this.fcm = admin.messaging();
   }
 
   /** 푸시 알림 전송 */
@@ -80,7 +81,8 @@ export class FcmService {
 
   async saveFcmToken(req: any) {
     try {
-      const { userId } = req.user;
+      console.log('req.user', req.user);
+      const { id: userId } = req.user;
       const { fcmToken } = req.body;
 
       Logger.log('fcm save userId', userId);
@@ -101,6 +103,30 @@ export class FcmService {
     } catch (error) {
       Logger.error('FCM 토큰 저장 중 오류 발생:', error);
       return responseObj.error('FCM 토큰 저장 중 오류가 발생했습니다.', error);
+    }
+  }
+
+  async deleteFcmToken(req: any) {
+    try { 
+      const { id: userId } = req.user;
+      const { fcmToken } = req.body;
+
+      Logger.log('fcm delete userId', userId);
+      Logger.log('fcm delete fcmToken', fcmToken);
+
+      const result = await this.fcmTokenRepository.delete({
+        userId,
+        fcmToken,
+      });
+
+      if (result.affected === 0) {
+        return responseObj.error('존재하지 않는 FCM 토큰입니다.');
+      }
+
+      return responseObj.success('FCM 토큰이 삭제되었습니다.');
+    } catch (error) {
+      Logger.error('FCM 토큰 삭제 중 오류 발생:', error);
+      return responseObj.error('FCM 토큰 삭제 중 오류가 발생했습니다.', error);
     }
   }
 }

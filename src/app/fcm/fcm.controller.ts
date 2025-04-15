@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { FcmService } from './fcm.service';
 import { ApiResponse } from '@nestjs/swagger';
 import { ApiOperation } from '@nestjs/swagger';
@@ -15,9 +22,20 @@ export class FcmController {
     description: 'FCM 토큰 저장 성공',
   })
   @UseGuards(AccessTokenGuard)
-  @Post('fcm-token')
+  @Post('save-fcm-token')
   async saveFcmToken(@Request() req: any) {
     return this.fcmService.saveFcmToken(req);
+  }
+
+  @ApiOperation({ summary: 'FCM 토큰 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: 'FCM 토큰 삭제 성공',
+  })
+  @UseGuards(AccessTokenGuard)
+  @Delete('delete-fcm-token')
+  async deleteFcmToken(@Request() req: any) {
+    return this.fcmService.deleteFcmToken(req);
   }
 
   @ApiOperation({ summary: '푸시 알림 전송' })

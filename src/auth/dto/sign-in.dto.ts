@@ -6,4 +6,7 @@ export class SignInDto {
 
   @ApiProperty({ description: '비밀번호' })
   password: string;
+
+  @ApiProperty({ description: 'FCM 토큰' })
+  fcmToken: string;
 }

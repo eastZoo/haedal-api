@@ -18,4 +18,8 @@ export class socialUserDto {
   name?: string;
   @ApiProperty({ description: '프로필 url 주소' })
   profileUrl?: string;
+
+  // FCM 토큰
+  @ApiProperty({ description: 'FCM 토큰' })
+  fcmToken?: string;
 }
