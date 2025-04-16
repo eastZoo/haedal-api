@@ -2,9 +2,15 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemoCategory } from 'src/entities/memo-category.entity';
 import { Memo } from 'src/entities/memo.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Not, Repository } from 'typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
 import { responseObj } from 'src/util/responseObj';
+import { AlarmHistory } from 'src/entities/alarm-history.entity';
+import { AlarmReadStatus } from 'src/entities/alarm_read_status.entity';
+import { UserRecord } from 'firebase-admin/lib/auth/user-record';
+import { User } from 'src/entities/user.entity';
+import { FcmToken } from 'src/entities/fcm.entity';
+import { FcmService } from '../fcm/fcm.service';
 
 @Injectable()
 export class MemoService {
@@ -15,6 +21,9 @@ export class MemoService {
     private readonly memoRepository: Repository<Memo>,
     private readonly alarmHistoryService: AlarmHistoryService,
     private readonly dataSource: DataSource, // DataSource를 주입받습니다.
+    @InjectRepository(FcmToken)
+    private readonly fcmTokenRepository: Repository<FcmToken>,
+    private readonly fcmService: FcmService,
   ) {}
 
   async getMemoList(req) {
@@ -40,10 +49,12 @@ export class MemoService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
       const { coupleId, id: userId } = req.user;
 
-      const memoCategory = await this.memoCategoryRepository.save({
+      // 메모 카테고리 저장
+      const memoCategory = await queryRunner.manager.save(MemoCategory, {
         category: req.body.category,
         title: req.body.title,
         color: req.body.color,
@@ -52,32 +63,62 @@ export class MemoService {
       });
 
       // 알람 히스토리 저장
-      const {
-        data: { id },
-      } = await this.alarmHistoryService.addAlarmHistory(
-        memoCategory.id,
-        userId,
-        coupleId,
-        'memoCategory',
-        'create',
-        null,
-        req.body.title,
-      );
-      Logger.log('id', id);
+      const alarmHistory = await queryRunner.manager.save(AlarmHistory, {
+        alarmId: memoCategory.id,
+        userId: userId,
+        coupleId: coupleId,
+        type: 'memoCategory',
+        crud: 'create',
+        content: req.body.title,
+      });
 
-      // 본인 알람은 자동으로 읽음 처리
-      await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
+      // 본인 알람 읽음 처리
+      await queryRunner.manager.save(AlarmReadStatus, {
+        alarmHistoryId: alarmHistory.id,
+        userId: userId,
+        isRead: true,
+      });
 
+      // 상대방 찾기
+      const partner = await queryRunner.manager.findOne(User, {
+        where: {
+          coupleId: coupleId,
+          id: Not(userId), // 자신이 아닌 상대방
+        },
+      });
+      Logger.log('partner', partner);
       await queryRunner.commitTransaction();
+
+      // 트랜잭션 완료 후 푸시 알림 전송
+      if (partner) {
+        // 상대방의 FCM 토큰 조회
+        const partnerFcmTokens = await this.fcmTokenRepository.find({
+          where: { userId: partner.id },
+        });
+
+        Logger.log('partnerFcmTokens', partnerFcmTokens);
+
+        // 각 토큰에 대해 푸시 알림 전송
+        // for (const tokenData of partnerFcmTokens) {
+        const result = await this.fcmService.sendPushNotification({
+          fcmToken:
+            'eozlIS3nz0JLtQJkUC-HGu:APA91bFMbt6N1RP0V5gsDrkbB5dLeQeaEVx5m0-juoR_9tIbKQj2aA_yQqTVF3-tFoEA6eIIKPVpgmZz1Ja6aQ1vs9ot1EkNOXMz43PZFgGKhw0aDGbF2sc',
+          title: '새로운 메모 카테고리가 생성되었습니다',
+          body: `${req.body.title}`,
+        });
+        Logger.log('result', result);
+        // }
+      }
+
       return responseObj.success();
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
     } finally {
       await queryRunner.release();
     }
   }
-
   async createMemo(req: any) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
