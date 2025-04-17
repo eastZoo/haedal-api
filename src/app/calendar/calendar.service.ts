@@ -93,8 +93,7 @@ export class CalendarService {
         // 각 토큰에 대해 푸시 알림 전송
         for (const tokenData of partnerFcmTokens) {
           await this.fcmService.sendPushNotification({
-            fcmToken:
-              'eozlIS3nz0JLtQJkUC-HGu:APA91bFMbt6N1RP0V5gsDrkbB5dLeQeaEVx5m0-juoR_9tIbKQj2aA_yQqTVF3-tFoEA6eIIKPVpgmZz1Ja6aQ1vs9ot1EkNOXMz43PZFgGKhw0aDGbF2sc',
+            fcmToken: tokenData.fcmToken,
             title: '새로운 일정이 등록되었습니다',
             body: `${req.body.title} (${req.body.startDate})`,
           });

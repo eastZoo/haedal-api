@@ -1,11 +1,14 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, Not, Repository } from 'typeorm';
 import { AlbumBoard } from 'src/entities/album-board.entity';
 import { Files } from 'src/entities/files.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AlarmHistoryService } from '../alarm-history/alarm-history.service';
 import { response } from 'express';
 import { responseObj } from 'src/util/responseObj';
+import { User } from 'src/entities/user.entity';
+import { FcmService } from '../fcm/fcm.service';
+import { FcmToken } from 'src/entities/fcm.entity';
 
 @Injectable()
 export class AlbumBoardService {
@@ -17,6 +20,9 @@ export class AlbumBoardService {
     private filesRepository: Repository<Files>,
     private readonly alarmHistoryService: AlarmHistoryService,
     private readonly dataSource: DataSource,
+    private readonly fcmService: FcmService,
+    @InjectRepository(FcmToken)
+    private readonly fcmTokenRepository: Repository<FcmToken>,
   ) {}
 
   async create(filesData: Express.Multer.File[], req: any) {
@@ -24,25 +30,27 @@ export class AlbumBoardService {
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
-    // 트랜잭션 시작
     await queryRunner.startTransaction();
+
     try {
       const post = JSON.parse(req.body.postData);
 
-      const albumBoard = await this.albumBoardRepository.save({
+      // 앨범 보드 저장
+      const albumBoard = await queryRunner.manager.save(AlbumBoard, {
         ...post,
         lat: parseFloat(post.lat),
         lng: parseFloat(post.lng),
         userId: userId,
         coupleId: coupleId,
       });
+
+      // 파일 저장
       const file = filesData.map((item) => ({
         ...item,
         albumBoardId: albumBoard.id,
         coupleId: coupleId,
       }));
-      await this.filesRepository.save(file);
-      // await queryManager.save(Files, file);
+      await queryRunner.manager.save(Files, file);
 
       // 알람 히스토리 저장
       const {
@@ -56,12 +64,38 @@ export class AlbumBoardService {
         filesData.length,
         post.title,
       );
-      // 본인 알람은 자동으로 읽음 처리
+
+      // 본인 알람 읽음 처리
       await this.alarmHistoryService.addMyAlarmReadStatus(id, userId);
 
+      // 상대방 찾기
+      const partner = await queryRunner.manager.findOne(User, {
+        where: {
+          coupleId: coupleId,
+          id: Not(userId),
+        },
+      });
+
       await queryRunner.commitTransaction();
+
+      // 트랜잭션 완료 후 푸시 알림 전송
+      if (partner) {
+        const partnerFcmTokens = await this.fcmTokenRepository.find({
+          where: { userId: partner.id },
+        });
+
+        for (const tokenData of partnerFcmTokens) {
+          await this.fcmService.sendPushNotification({
+            fcmToken: tokenData.fcmToken,
+            title: '새로운 앨범이 등록되었습니다',
+            body: `${post.title}`,
+          });
+        }
+      }
+
       return responseObj.success();
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       Logger.error(error);
       throw new HttpException('저장에 실패했습니다.', 500);
     } finally {
