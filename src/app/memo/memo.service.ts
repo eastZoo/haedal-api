@@ -102,7 +102,7 @@ export class MemoService {
         for (const tokenData of partnerFcmTokens) {
           const result = await this.fcmService.sendPushNotification({
             fcmToken: tokenData.fcmToken,
-            title: '새로운 메모 카테고리가 생성되었습다',
+            title: '새로운 메모 카테고리가 생성되었습니다.',
             body: `${req.body.title}`,
           });
           Logger.log('result', result);

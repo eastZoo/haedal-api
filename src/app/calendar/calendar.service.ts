@@ -94,8 +94,11 @@ export class CalendarService {
         for (const tokenData of partnerFcmTokens) {
           await this.fcmService.sendPushNotification({
             fcmToken: tokenData.fcmToken,
-            title: '새로운 일정이 등록되었습니다',
-            body: `${req.body.title} (${req.body.startDate})`,
+            title: `새로운 일정이 등록되었습니다. (${req.body.startDate.substring(
+              0,
+              10,
+            )})`,
+            body: `${req.body.title}`,
           });
         }
       }
