@@ -48,22 +48,31 @@ export class FcmService {
         title: pushParamsDto.title,
         body: pushParamsDto.body,
       },
-      // notification: {
-      //   title: pushParamsDto.title,
-      //   body: pushParamsDto.body,
-      // },
+      notification: {
+        title: pushParamsDto.title,
+        body: pushParamsDto.body,
+      },
       android: {
-        // notification: {
-        //   channelId: 'high_importance_channel',
-        //   clickAction: 'FLUTTER_NOTIFICATION_CLICK', // ✅ 안드로이드 클릭 액션 지원
-        // },
+        notification: {
+          channelId: 'high_importance_channel',
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+        },
       },
       apns: {
         payload: {
           aps: {
-            // category: 'FLUTTER_NOTIFICATION_CLICK', // ✅ iOS 클릭 액션 지원
+            alert: {
+              title: pushParamsDto.title,
+              body: pushParamsDto.body,
+            },
+            sound: 'default',
+            badge: 1,
             contentAvailable: true,
           },
+        },
+        headers: {
+          'apns-priority': '10',
+          'apns-push-type': 'alert', // 중요!
         },
       },
     };
@@ -107,7 +116,7 @@ export class FcmService {
   }
 
   async deleteFcmToken(req: any) {
-    try { 
+    try {
       const { id: userId } = req.user;
       const { fcmToken } = req.body;
 
